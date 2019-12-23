@@ -1,62 +1,55 @@
+# %%
+# -*- coding: utf-8 -*-
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from skimage.io import imread_collection
+import plotly.express as px
 import pandas as pd
+import os
 
-df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/gapminderDataFiveYear.csv')
+filelist = []
+labellist = []
+
+for root, dirs, files in os.walk("..\\playground\\visualization\\data\\images\\train", topdown=False):
+    for folder in dirs:
+        folderpath = os.path.join(root, folder, '*.jpg')
+        print(folderpath)
+        images = imread_collection(folderpath)
+        for i in images:
+            filelist.append(i.ravel())
+            labellist.append(folder)
+
+dict_img = {'image': filelist, 'label': labellist}
+df_img = pd.DataFrame(data=dict_img)
+tsne_results = pd.read_csv('data\\tsne.csv')
+x_values = tsne_results['x'].values
+y_values = tsne_results['y'].values
+
+# %%
+fig = px.scatter(df_img, x=x_values, y=y_values, color=df_img['label'].values,
+                 render_mode='webgl', width=900, height=1000) \
+    .for_each_trace(lambda t: t.update(name=t.name.replace("color=", "")))
+
+fig.update_traces(marker_line=dict(width=0, color='DarkSlateGray'))
+fig.update_traces(marker=dict(size=2.5))
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-app.layout = html.Div([
-    dcc.Graph(id='graph-with-slider'),
-    dcc.Slider(
-        id='year-slider',
-        min=df['year'].min(),
-        max=df['year'].max(),
-        value=df['year'].min(),
-        marks={str(year): str(year) for year in df['year'].unique()},
-        step=None
+app.layout = html.Div(children=[
+    html.H1(children='T-SNE Viewer'),
+
+    html.Div(children='''
+        Img2Cluster: A web application for image clustering and labeling.
+    '''),
+
+    dcc.Graph(
+        id='example-graph',
+        figure=fig
     )
 ])
 
-
-@app.callback(
-    Output('graph-with-slider', 'figure'),
-    [Input('year-slider', 'value')])
-def update_figure(selected_year):
-    filtered_df = df[df.year == selected_year]
-    traces = []
-    for i in filtered_df.continent.unique():
-        df_by_continent = filtered_df[filtered_df['continent'] == i]
-        traces.append(dict(
-            x=df_by_continent['gdpPercap'],
-            y=df_by_continent['lifeExp'],
-            text=df_by_continent['country'],
-            mode='markers',
-            opacity=0.7,
-            marker={
-                'size': 15,
-                'line': {'width': 0.5, 'color': 'white'}
-            },
-            name=i
-        ))
-
-    return {
-        'data': traces,
-        'layout': dict(
-            xaxis={'type': 'log', 'title': 'GDP Per Capita',
-                   'range':[2.3, 4.8]},
-            yaxis={'title': 'Life Expectancy', 'range': [20, 90]},
-            margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-            legend={'x': 0, 'y': 1},
-            hovermode='closest',
-            transition = {'duration': 5000},
-        )
-    }
-
-
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, dev_tools_hot_reload=False)
