@@ -1,3 +1,5 @@
+flask
+waitress
 scikit-image
 plotly
 dash

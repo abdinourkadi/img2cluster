@@ -1,48 +1,52 @@
 # %%
 # -*- coding: utf-8 -*-
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
 from skimage.io import imread_collection
+import dash_html_components as html
+import dash_core_components as dcc
 import plotly.express as px
+from waitress import serve
 import pandas as pd
+import flask
+import dash
 import os
 
-filelist = []
-labellist = []
+file_list = []
+label_list = []
 
-for root, dirs, files in os.walk("..\\playground\\visualization\\data\\images\\train", topdown=False):
+for root, dirs, files in os.walk("data\\images\\", topdown=False):
     for folder in dirs:
-        folderpath = os.path.join(root, folder, '*.jpg')
-        print(folderpath)
-        images = imread_collection(folderpath)
+        folder_path = os.path.join(root, folder, '*.jpg')
+        print(folder_path)
+        images = imread_collection(folder_path)
         for i in images:
-            filelist.append(i.ravel())
-            labellist.append(folder)
+            file_list.append(i.ravel())
+            label_list.append(folder)
 
-dict_img = {'image': filelist, 'label': labellist}
+dict_img = {'image': file_list,
+            'label': label_list}
 df_img = pd.DataFrame(data=dict_img)
-tsne_results = pd.read_csv('data\\tsne.csv')
-x_values = tsne_results['x'].values
-y_values = tsne_results['y'].values
 
 # %%
-fig = px.scatter(df_img, x=x_values, y=y_values, color=df_img['label'].values,
-                 render_mode='webgl', width=900, height=1000) \
-    .for_each_trace(lambda t: t.update(name=t.name.replace("color=", "")))
+# csv is pickled and not human readable
+tsne = pd.read_pickle('data\\tsne.csv')
 
-fig.update_traces(marker_line=dict(width=0, color='DarkSlateGray'))
-fig.update_traces(marker=dict(size=2.5))
+fig = px.scatter(tsne, x='x', y='y', color=tsne['label'],
+                 render_mode='webgl', width=700, height=800) \
+    .for_each_trace(lambda t: t.update(name=t.name.replace("label=", "")))
+
+fig.update_traces(marker_line=dict(width=1, color='DarkSlateGray'))
+fig.update_traces(marker=dict(size=8))
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+server = flask.Flask(__name__)
+app = dash.Dash(__name__, server=server, external_stylesheets=external_stylesheets)
 
 app.layout = html.Div(children=[
     html.H1(children='T-SNE Viewer'),
 
     html.Div(children='''
-        Img2Cluster: A web application for image clustering and labeling.
+        Img2Cluster: A web application for image clustering and labeling. Two
     '''),
 
     dcc.Graph(
@@ -52,4 +56,5 @@ app.layout = html.Div(children=[
 ])
 
 if __name__ == '__main__':
-    app.run_server(debug=True, dev_tools_hot_reload=False)
+    # app.run_server(debug=False, dev_tools_hot_reload=False)
+    serve(server, host='0.0.0.0', port=8080, threads=10)
