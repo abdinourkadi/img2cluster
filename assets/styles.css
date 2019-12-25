@@ -1,0 +1,18 @@
+.grid-container {
+  display: grid;
+  grid-template-columns: 0.5fr 1fr 1fr;
+  grid-template-rows: 0.2fr 1fr;
+  grid-template-areas: "title title title" "sidebar tsnezone images";
+}
+
+.sidebar { grid-area: sidebar;
+           background-color: cadetblue}
+
+.tsnezone { grid-area: tsnezone;
+            background-color: bisque}
+
+.title { grid-area: title;
+         background-color: indianred}
+
+.images { grid-area: images;
+          background-color: sandybrown}
