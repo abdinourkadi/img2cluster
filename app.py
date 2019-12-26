@@ -13,10 +13,8 @@ import flask
 import dash
 import os
 
-# external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-
 server = flask.Flask(__name__)
-app = dash.Dash(__name__, server=server)  # , external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__, server=server)
 
 # file_list = []
 # label_list = []
