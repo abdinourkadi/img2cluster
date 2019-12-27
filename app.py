@@ -37,16 +37,17 @@ app = dash.Dash(__name__, server=server)
 tsne = pd.read_pickle('data/tsne.csv')
 
 fig = px.scatter(tsne, x='x', y='y', color=tsne['label'],
-                 render_mode='webgl', height=900, width=900, hover_data=['index']) \
+                 render_mode='webgl', height=700, width=600, hover_data=['index']) \
     .for_each_trace(lambda t: t.update(name=t.name.replace("label=", "")))
-
 fig.update_traces(marker_line=dict(width=1, color='DarkSlateGray'))
 fig.update_traces(marker=dict(size=8))
+fig.update_layout(paper_bgcolor='rgba(0,0,0,0)',
+                  plot_bgcolor='rgba(0,0,0,0)')
 
 # %%
 app.layout = html.Div(className="grid-container", children=[
 
-    html.Div(className = 'title', children = [
+    html.Div(className='title', children=[
         html.H1(children='header'),
         html.Div(children='div child'),
     ]),
@@ -72,8 +73,13 @@ def display(click_data):
         sample_idx = int(click_data['points'][0]['customdata'][0])
         sample_image = tsne['image'][sample_idx].reshape(28, 28)
         pic = px.imshow(sample_image, color_continuous_scale='gray')
-        pic.update_layout(coloraxis_showscale=False)
-        pic.update_layout(width=400, height=400)
+        pic.update_layout(coloraxis_showscale=False, width=200, height=200)
+        pic.update_layout(margin=dict(
+            l=0,
+            r=0,
+            b=0,
+            t=0,
+            pad=0))
         pic.update_xaxes(showticklabels=False).update_yaxes(showticklabels=False)
         return pic
     else:
