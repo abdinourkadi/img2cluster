@@ -15,41 +15,41 @@ import dash
 server = flask.Flask(__name__)
 app = dash.Dash(__name__, server=server)
 
-path_list = []
-file_list = []
-label_list = []
-
-for root, dirs, files in os.walk("data\\images\\", topdown=False):
-    for folder in dirs:
-        folder_path = os.path.join(root, folder, '*.jpg')
-        print(folder_path)
-        images = imread_collection(folder_path)
-        path_list.extend(images.files)
-        for i in images[:10]:
-            file_list.append(i.ravel())
-            label_list.append(folder)
-
-# %%
-tsne_clf = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=300)
-tsne_results = tsne_clf.fit_transform(file_list)
-
-# %%
-index_list = range(len(file_list))
-x_values = tsne_results[:, 0]
-y_values = tsne_results[:, 1]
-
-# %%
-
-dict_img = {'index': index_list,
-            'label': label_list,
-            'x': x_values,
-            'y': y_values,
-            'paths': path_list,
-            'image': file_list}
-
-# %%
-df_img = pd.DataFrame(data=dict_img)
-df_img.to_pickle('data\\tsne_pickle.csv')
+# path_list = []
+# file_list = []
+# label_list = []
+#
+# for root, dirs, files in os.walk("data\\images\\", topdown=False):
+#     for folder in dirs:
+#         folder_path = os.path.join(root, folder, '*.jpg')
+#         print(folder_path)
+#         images = imread_collection(folder_path)
+#         path_list.extend(images.files)
+#         for i in images:
+#             file_list.append(i.ravel())
+#             label_list.append(folder)
+#
+# # %%
+# tsne_clf = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=300)
+# tsne_results = tsne_clf.fit_transform(file_list)
+#
+# # %%
+# index_list = range(len(file_list))
+# x_values = tsne_results[:, 0]
+# y_values = tsne_results[:, 1]
+#
+# # %%
+#
+# dict_img = {'index': index_list,
+#             'label': label_list,
+#             'x': x_values,
+#             'y': y_values,
+#             'paths': path_list,
+#             'image': file_list}
+#
+# # %%
+# df_img = pd.DataFrame(data=dict_img)
+# df_img.to_pickle('data\\tsne_pickle.csv')
 tsne = pd.read_pickle('data\\tsne_pickle.csv')
 
 # %%
