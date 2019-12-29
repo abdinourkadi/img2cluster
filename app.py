@@ -63,22 +63,21 @@ fig = px.scatter(tsne, x='x', y='y', color=tsne['label'],
 fig.update_traces(marker_line=dict(width=1, color='DarkSlateGray'), marker=dict(size=8))
 fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
 
-
 # %%
-strtest = 'iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAABxElEQVR4nL2SvWtTYRjFf+/HvfdNbntNtdJWO7kUF+ngUJSg4Ad2E7qLODj0v3ARBKEgKG6CdhU/QDcH0clJxUECihqbJaE1vc29TZO8j0PS0MTdsx6ec87zPAeG0AaIlKYECSMIARNbFAGBZhy6oCCheOpHus3hUc45cAGzq93Uyz+TWJi78kX8bnUhGmUiCNXcrZZs+5/zjJnaBMpvRNKPN+1EiUMjpIELTzuSrocKo/ZlLVoRUODu3h/fu8ykBooDMgCrDTySVJoXIzTMHExiHPpOlsmrs4A1CpgEQAWAYlHEr5UohpaSIp7qO6oOpidcbal7t9PisaXj0yvPaw+39nWVg/C9VMLC+Sd1SUUyeTZcxVh0UKlfW/rwS5oi0pCd6sENLZ9y+d6RXNr5V9kVud5/hVK92HZB92a9+Lc3lk+uvNiRc244iDGvJRdp3g8MBh5nvwf38Tps96jWp2klq92Nmcql2pnCRtwCiCGAxdq3RkMy6eTSkr2arPVVQ9Cw8DKeOP1uU0QambS38iQGUOB813O07op+vrxZPrH8YP1z0sz6eYwBp60D3BEiYEppNezGQJ0CxForFI5wvEP/C38B9LCmuPotr8gAAAAASUVORK5CYII='
+strtest = 'data:image;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAABxElEQVR4nL2SvWtTYRjFf+/HvfdNbntNtdJWO7kUF+ngUJSg4Ad2E7qLODj0v3ARBKEgKG6CdhU/QDcH0clJxUECihqbJaE1vc29TZO8j0PS0MTdsx6ec87zPAeG0AaIlKYECSMIARNbFAGBZhy6oCCheOpHus3hUc45cAGzq93Uyz+TWJi78kX8bnUhGmUiCNXcrZZs+5/zjJnaBMpvRNKPN+1EiUMjpIELTzuSrocKo/ZlLVoRUODu3h/fu8ykBooDMgCrDTySVJoXIzTMHExiHPpOlsmrs4A1CpgEQAWAYlHEr5UohpaSIp7qO6oOpidcbal7t9PisaXj0yvPaw+39nWVg/C9VMLC+Sd1SUUyeTZcxVh0UKlfW/rwS5oi0pCd6sENLZ9y+d6RXNr5V9kVud5/hVK92HZB92a9+Lc3lk+uvNiRc244iDGvJRdp3g8MBh5nvwf38Tps96jWp2klq92Nmcql2pnCRtwCiCGAxdq3RkMy6eTSkr2arPVVQ9Cw8DKeOP1uU0QambS38iQGUOB813O07op+vrxZPrH8YP1z0sz6eYwBp60D3BEiYEppNezGQJ0CxForFI5wvEP/C38B9LCmuPotr8gAAAAASUVORK5CYII='
+
+
 def numpy_to_b64(array, scalar=True):
-    # Convert from 0-1 to 0-255
     if scalar:
-        #print("HOLD UP")
-       # print(array)
+
         array = np.uint8(array)
 
     im_pil = Image.fromarray(array)
     buff = BytesIO()
     im_pil.save(buff, format="png")
     im_b64 = base64.b64encode(buff.getvalue()).decode("utf-8")
-    #print(im_b64)
     return im_b64
+
 
 app.layout = html.Div(className="grid-container", children=[
 
@@ -93,9 +92,10 @@ app.layout = html.Div(className="grid-container", children=[
         id='2d-tsne',
         figure=fig
     ),
-    html.Div(#[html.Img(src='data:image;base64,{}'.format(strtest))],
+    html.Div(  # [html.Img(src=strtest)],#'data:image;base64,{}'.format(strtest))],
         className='images',
         id='im-graph',
+        children="wtf is going on"
     )
 
     # html.Div(
@@ -108,24 +108,24 @@ app.layout = html.Div(className="grid-container", children=[
 ])
 
 
-@app.callback(Output('im-graph', 'children'),
+@app.callback(Output(component_id='im-graph', component_property='children'),
               [Input('2d-tsne', 'clickData')])
 def generate_image(click_data):
     if click_data:
         click_idx = int(click_data['points'][0]['customdata'][0])
         image_np = tsne['image'][click_idx].reshape(28, 28).astype(np.float64)
-        #print(type(image_np))
-        #print(image_np)
-        image_b64 = numpy_to_b64(image_np)#.decode()
-        print(image_b64)
+        image_b64 = numpy_to_b64(image_np)  # .decode()
         # return html.Img(
         #     src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAABuUlEQVR4nL2Su2sUURTGf/feuXceu2OSlSBoI0FFsRC18IFi7HwgWgT8AxQRbMRGJAgWNqJgY2WtsbGyELUNCsEqIIKKwUIwj8V1N7vjZCeTY7Ezi7v2ft3h43e+78CBv6Q9BSEoNAMKqGHRpsq4c9hBE2vRVUxvGBkyt8CojS59+b03Mnj8o3FuJhs/Kvjlgn4ZnGP3N/l8wRCrYcxR9d7I0ouKA3Q04CkDp9NUJsES9QFQYH38V5JnV1GgoiJUKc95AOH22YYsKJQzaBMWrFfEz3Tl03GIYTAQTXhX1puH4cDJY0fObi1Ao0E5D563l+ewlfeLkq48m+pjxiqYzPP6+erb9UX5+lTkVrU0PQ0jL9tyndlEZP4M99eu+QAEYGHs4M+0fkIvdORehH9x9VGvSYrNfBrnQm9z8mCbW5pJvImHeasfiVPxdN5dvdOS5aPw+EPW3LWpF4gFzKlmJo20KUxJXZ6Uj6AJFBBf2Uhz6XzfNy+/buyk5grbGu1gx5xIR6S9svY6iKF3itKANTDxTrJE2h8v74HRcm9QFtt/uyVdOVSDSkniQ2DQDpxC4TMGZvj7/p/+AMJWiMiAw//fAAAAAElFTkSuQmCC",
         #     style={"height": "25vh", "display": "block", "margin": "auto"},
         # )
-        return html.Img(
-            src="data:image;base64," + image_b64,
-            #style={"height": "25vh", "display": "block", "margin": "auto"},
-        )
+        finalstr = 'data:image;base64,' + image_b64
+        print(finalstr)
+        return html.Div(children='What the fuck')
+        # return html.Img(
+        #     src=finalstr#+ image_b64,
+        #     #style={"height": "25vh", "display": "block", "margin": "auto"},
+        # )
     else:
         print("Caught TypeError")
         return {}
