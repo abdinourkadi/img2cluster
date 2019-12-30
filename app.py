@@ -69,7 +69,6 @@ strtest = 'data:image;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAABxEl
 
 def numpy_to_b64(array, scalar=True):
     if scalar:
-
         array = np.uint8(array)
 
     im_pil = Image.fromarray(array)
@@ -92,11 +91,11 @@ app.layout = html.Div(className="grid-container", children=[
         id='2d-tsne',
         figure=fig
     ),
-    html.Div(  # [html.Img(src=strtest)],#'data:image;base64,{}'.format(strtest))],
-        className='images',
-        id='im-graph',
-        children="wtf is going on"
-    )
+    html.Div([html.Img(src=strtest)],  # 'data:image;base64,{}'.format(strtest))],
+             className='images',
+             id='im-graph',
+             #children="wtf is going on"
+             )
 
     # html.Div(
     #         className='images',
@@ -115,20 +114,15 @@ def generate_image(click_data):
         click_idx = int(click_data['points'][0]['customdata'][0])
         image_np = tsne['image'][click_idx].reshape(28, 28).astype(np.float64)
         image_b64 = numpy_to_b64(image_np)  # .decode()
-        # return html.Img(
-        #     src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAABuUlEQVR4nL2Su2sUURTGf/feuXceu2OSlSBoI0FFsRC18IFi7HwgWgT8AxQRbMRGJAgWNqJgY2WtsbGyELUNCsEqIIKKwUIwj8V1N7vjZCeTY7Ezi7v2ft3h43e+78CBv6Q9BSEoNAMKqGHRpsq4c9hBE2vRVUxvGBkyt8CojS59+b03Mnj8o3FuJhs/Kvjlgn4ZnGP3N/l8wRCrYcxR9d7I0ouKA3Q04CkDp9NUJsES9QFQYH38V5JnV1GgoiJUKc95AOH22YYsKJQzaBMWrFfEz3Tl03GIYTAQTXhX1puH4cDJY0fObi1Ao0E5D563l+ewlfeLkq48m+pjxiqYzPP6+erb9UX5+lTkVrU0PQ0jL9tyndlEZP4M99eu+QAEYGHs4M+0fkIvdORehH9x9VGvSYrNfBrnQm9z8mCbW5pJvImHeasfiVPxdN5dvdOS5aPw+EPW3LWpF4gFzKlmJo20KUxJXZ6Uj6AJFBBf2Uhz6XzfNy+/buyk5grbGu1gx5xIR6S9svY6iKF3itKANTDxTrJE2h8v74HRcm9QFtt/uyVdOVSDSkniQ2DQDpxC4TMGZvj7/p/+AMJWiMiAw//fAAAAAElFTkSuQmCC",
-        #     style={"height": "25vh", "display": "block", "margin": "auto"},
-        # )
+
         finalstr = 'data:image;base64,' + image_b64
-        print(finalstr)
-        return html.Div(children='What the fuck')
-        # return html.Img(
-        #     src=finalstr#+ image_b64,
-        #     #style={"height": "25vh", "display": "block", "margin": "auto"},
-        # )
+        return [html.Img(
+            src=finalstr,#+ image_b64,
+            style={"height": "25vh", "display": "block", "margin": "auto"},
+        )]
     else:
         print("Caught TypeError")
-        return {}
+        return None
 
 
 # @app.callback(Output('im-graph', 'figure'),
@@ -154,5 +148,5 @@ def generate_image(click_data):
 
 
 if __name__ == '__main__':
-    # app.run_server(debug=True)#, host='0.0.0.0')
-    serve(server, host='0.0.0.0', port=8080, threads=10)
+    app.run_server(debug=True)
+    # serve(server, host='0.0.0.0', port=8080, threads=10, debug=True)
