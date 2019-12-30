@@ -1,18 +1,22 @@
 .grid-container {
-  display: grid;
-  grid-template-columns: 0.5fr 1fr 1fr;
-  grid-template-rows: 0.2fr 1fr;
-  grid-template-areas: "title title title" "sidebar tsnezone images";
+    display: grid;
+    grid-template-columns: 0.5fr 1fr 1fr;
+    grid-template-rows: 0.2fr 1fr;
+    height: 100vh;
+    grid-template-areas: "title title title" "sidebar tsnezone images";
 }
 
 .sidebar { grid-area: sidebar;
            background-color: cadetblue}
 
-.tsnezone { grid-area: tsnezone;
+.graph-panel { grid-area: tsnezone;
             background-color: bisque}
 
 .title { grid-area: title;
-         background-color: indianred}
+         background-color: indianred;
+         #height: 20vh}
 
-.images { grid-area: images;
-          background-color: sandybrown}
+.image-panel { grid-area: images;
+               background-color: sandybrown;
+                overflow: scroll;
+                max-height: 100vh;}

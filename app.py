@@ -14,6 +14,7 @@ from io import BytesIO
 from PIL import Image
 import numpy as np
 import flask
+import json
 import dash
 
 server = flask.Flask(__name__)
@@ -64,13 +65,27 @@ fig.update_traces(marker_line=dict(width=1, color='DarkSlateGray'), marker=dict(
 fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
 
 # %%
-strtest = 'data:image;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAABxElEQVR4nL2SvWtTYRjFf+/HvfdNbntNtdJWO7kUF+ngUJSg4Ad2E7qLODj0v3ARBKEgKG6CdhU/QDcH0clJxUECihqbJaE1vc29TZO8j0PS0MTdsx6ec87zPAeG0AaIlKYECSMIARNbFAGBZhy6oCCheOpHus3hUc45cAGzq93Uyz+TWJi78kX8bnUhGmUiCNXcrZZs+5/zjJnaBMpvRNKPN+1EiUMjpIELTzuSrocKo/ZlLVoRUODu3h/fu8ykBooDMgCrDTySVJoXIzTMHExiHPpOlsmrs4A1CpgEQAWAYlHEr5UohpaSIp7qO6oOpidcbal7t9PisaXj0yvPaw+39nWVg/C9VMLC+Sd1SUUyeTZcxVh0UKlfW/rwS5oi0pCd6sENLZ9y+d6RXNr5V9kVud5/hVK92HZB92a9+Lc3lk+uvNiRc244iDGvJRdp3g8MBh5nvwf38Tps96jWp2klq92Nmcql2pnCRtwCiCGAxdq3RkMy6eTSkr2arPVVQ9Cw8DKeOP1uU0QambS38iQGUOB813O07op+vrxZPrH8YP1z0sz6eYwBp60D3BEiYEppNezGQJ0CxForFI5wvEP/C38B9LCmuPotr8gAAAAASUVORK5CYII='
+app.layout = html.Div(className="grid-container", children=[
+
+    html.Div(className='title', children=[
+        html.H1(children='Image Dataset Viewer'),
+        html.Div(children='View and label all of your images in one page'),
+    ]),
+
+    html.Div(className='sidebar', children='menu placeholder'),
+    dcc.Graph(
+        className='graph-panel',
+        id='2d-tsne',
+        figure=fig
+    ),
+
+    html.Div(className='image-panel',
+             id='im-graph')
+])
 
 
-def numpy_to_b64(array, scalar=True):
-    if scalar:
-        array = np.uint8(array)
-
+def numpy_to_b64(array):
+    array = np.uint8(array)
     im_pil = Image.fromarray(array)
     buff = BytesIO()
     im_pil.save(buff, format="png")
@@ -78,73 +93,23 @@ def numpy_to_b64(array, scalar=True):
     return im_b64
 
 
-app.layout = html.Div(className="grid-container", children=[
-
-    html.Div(className='title', children=[
-        html.H1(children='header'),
-        html.Div(children='div child'),
-    ]),
-
-    html.Div(className='sidebar', children='menu placeholder'),
-    dcc.Graph(
-        className='tsnezone',
-        id='2d-tsne',
-        figure=fig
-    ),
-    html.Div([html.Img(src=strtest)],  # 'data:image;base64,{}'.format(strtest))],
-             className='images',
-             id='im-graph',
-             #children="wtf is going on"
-             )
-
-    # html.Div(
-    #         className='images',
-    #         id='im-graph',
-    #         children=[html.Img(src="data:image;base64, "
-    #                                "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8"
-    #                                "/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==")]
-    #     )
-])
-
-
-@app.callback(Output(component_id='im-graph', component_property='children'),
-              [Input('2d-tsne', 'clickData')])
-def generate_image(click_data):
-    if click_data:
-        click_idx = int(click_data['points'][0]['customdata'][0])
-        image_np = tsne['image'][click_idx].reshape(28, 28).astype(np.float64)
-        image_b64 = numpy_to_b64(image_np)  # .decode()
-
-        finalstr = 'data:image;base64,' + image_b64
-        return [html.Img(
-            src=finalstr,#+ image_b64,
-            style={"height": "25vh", "display": "block", "margin": "auto"},
-        )]
+@app.callback(
+    Output('im-graph', 'children'),
+    [Input('2d-tsne', 'selectedData')])
+def display_selected_data(selectedData):
+    if selectedData:
+        item_list = []
+        for i in selectedData['points']:
+            select_idx = int(i['customdata'][0])
+            image_np = tsne['image'][select_idx].reshape(28, 28).astype(np.float64)
+            image_b64 = numpy_to_b64(image_np)
+            img_src = 'data:image;base64,' + image_b64
+            item = html.Img(src=img_src,
+                            style={"height": "5vh", "border": "0", "float": "left"})
+            item_list.append(item)
+        return item_list
     else:
-        print("Caught TypeError")
         return None
-
-
-# @app.callback(Output('im-graph', 'figure'),
-#               [Input('2d-tsne', 'clickData')])
-# def display(click_data):
-#     if click_data:
-#         sample_idx = int(click_data['points'][0]['customdata'][0])
-#         sample_image = tsne['image'][sample_idx].reshape(28, 28)
-#         pic = px.imshow(sample_image, color_continuous_scale='gray')
-#         pic.update_layout(coloraxis_showscale=False, width=200, height=200)
-#         pic.update_layout(margin=dict(
-#             l=0,
-#             r=0,
-#             b=0,
-#             t=0,
-#             pad=0))
-#         pic.update_xaxes(showticklabels=False)
-#         pic.update_yaxes(showticklabels=False)
-#         return pic
-#     else:
-#         print("Caught TypeError")
-#         return {}
 
 
 if __name__ == '__main__':
