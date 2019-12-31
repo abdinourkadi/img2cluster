@@ -2,7 +2,7 @@
     display: grid;
     grid-template-columns: 0.5fr 1fr 1fr;
     grid-template-rows: 0.2fr 1fr;
-    height: 100vh;
+    height: 98vh;
     grid-template-areas: "title title title" "sidebar tsnezone images";
 }
 
