@@ -7,16 +7,16 @@
 }
 
 .sidebar { grid-area: sidebar;
-           background-color: cadetblue}
+           background-color: lightslategray}
 
 .graph-panel { grid-area: tsnezone;
-            background-color: bisque}
+            background-color: lightslategray}
 
 .title { grid-area: title;
-         background-color: indianred;
+         background-color: lightslategray;
          #height: 20vh}
 
 .image-panel { grid-area: images;
-               background-color: sandybrown;
+               background-color: lightslategray;
                 overflow: scroll;
                 max-height: 100vh;}
