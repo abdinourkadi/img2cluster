@@ -72,7 +72,14 @@ app.layout = html.Div(className="grid-container", children=[
         html.Div(children='View and label all of your images in one page'),
     ]),
 
-    html.Div(className='sidebar', children='menu placeholder'),
+    html.Div(className='sidebar', children=[
+        dcc.Tabs(id="tabs-example", value='tab-1-example', children=[
+                dcc.Tab(label='About', value='about-tab'),
+                dcc.Tab(label='Data', value='data-tab'),
+                dcc.Tab(label='Graph', value='graph-tab')
+            ]),
+        ]),
+
     dcc.Graph(
         className='graph-panel',
         id='2d-tsne',
