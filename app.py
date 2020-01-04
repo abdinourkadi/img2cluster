@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from skimage.io import imread_collection
 from sklearn.manifold import TSNE
 import plotly.express as px
@@ -17,50 +16,21 @@ import flask
 import json
 import dash
 
+from util import generate_master
+from util import numpy_to_b64
+from util import build_df
+
 server = flask.Flask(__name__)
 app = dash.Dash(__name__, server=server)
 
-# path_list = []
-# file_list = []
-# label_list = []
-#
-# for root, dirs, files in os.walk("data\\images\\", topdown=False):
-#     for folder in dirs:
-#         folder_path = os.path.join(root, folder, '*.jpg')
-#         print(folder_path)
-#         images = imread_collection(folder_path)
-#         path_list.extend(images.files)
-#         for i in images:
-#             file_list.append(i.ravel())
-#             label_list.append(folder)
-#
-# # %%
-# tsne_clf = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=300)
-# tsne_results = tsne_clf.fit_transform(file_list)
-#
-# # %%
-# index_list = range(len(file_list))
-# x_values = tsne_results[:, 0]
-# y_values = tsne_results[:, 1]
-#
-# # %%
-#
-# dict_img = {'index': index_list,
-#             'label': label_list,
-#             'x': x_values,
-#             'y': y_values,
-#             'paths': path_list,
-#             'image': file_list}
-#
-# # %%
-# df_img = pd.DataFrame(data=dict_img)
-# df_img.to_pickle('data\\tsne_pickle.csv')
-tsne = pd.read_pickle('data\\tsne_pickle.csv')
+# tsne = pd.read_pickle('data\\tsne_pickle.csv')
+tsne = pd.read_csv('data\\blank_sample.csv')
+tsne = build_df(tsne)
 
 # %%
-fig = px.scatter(tsne, x='x', y='y', color=tsne['label'],
-                 render_mode='webgl', height=700, width=600, hover_data=['index']) \
-    .for_each_trace(lambda t: t.update(name=t.name.replace("label=", "")))
+fig = px.scatter(tsne, x='x', y='y', color=tsne['label'],  # 820 700
+                 render_mode='webgl', height=750, width=700, hover_data=['index'])  # \
+# .for_each_trace(lambda t: t.update(name=t.name.replace("label=", "")))
 fig.update_traces(marker_line=dict(width=1, color='DarkSlateGray'), marker=dict(size=8))
 fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
 
@@ -73,12 +43,99 @@ app.layout = html.Div(className="grid-container", children=[
     ]),
 
     html.Div(className='sidebar', children=[
-        dcc.Tabs(id="tabs-example", value='tab-1-example', children=[
-                dcc.Tab(label='About', value='about-tab'),
-                dcc.Tab(label='Data', value='data-tab'),
-                dcc.Tab(label='Graph', value='graph-tab')
-            ]),
+        dcc.Tabs(id="tabs-example", value='about-tab', children=[
+            dcc.Tab(label='About', value='about-tab', children=[
+                html.Div(className='control-tab', children=[
+                    html.H4(className='what-is', children="What is Img2Cluster?"),
+
+                    html.P('Img2Cluster is a viz of data, and can be used '
+                           'to highlight relationships between objects in a dataset '
+                           '(e.g., genes that are located on different chromosomes '
+                           'in the genome of an organism).'),
+                    html.P('A Dash Img2Cluster graph consists of two main parts: the layout '
+                           'and the tracks. '
+                           'The layout sets the basic parameters of the graph, such as '
+                           'radius, ticks, labels, etc; the tracks are graph layouts '
+                           'that take in a series of data points to display.'),
+                    html.P('The visualizations supported by Dash Circos are: heatmaps, '
+                           'chords, highlights, histograms, line, scatter, stack, '
+                           'and text graphs.'),
+                    html.P('In the "Data" tab, you can opt to use preloaded datasets; '
+                           'additionally, you can download sample data that you would '
+                           'use with a Dash Circos component, upload that sample data, '
+                           'and render it with the "Render" button.'),
+                    html.P('In the "Graph" tab, you can choose the type of Circos graph '
+                           'to display, control the size of the graph, and access data '
+                           'that are generated upon hovering over parts of the graph. '),
+                    html.P('In the "Table" tab, you can view the datasets that define '
+                           'the parameters of the graph, such as the layout, the '
+                           'highlights, and the chords. You can interact with Circos '
+                           'through this table by selecting the "Chords" graph in the '
+                           '"Graph" tab, then viewing the "Chords" dataset in the '
+                           '"Table" tab.')])]),
+
+            dcc.Tab(label='Data', value='data-tab',
+                    children=html.Div(className='control-tab', children=[
+                        html.Div(className='app-controls-block', children=[
+                            html.Div(className='app-controls-name', children='Data source'),
+                            dcc.Dropdown(
+                                id='data-dropdown',
+                                options=[
+                                    {'label': 'Demo Data', 'value': 'Demo Data'},
+                                    {'label': 'Upload CSV', 'value': 'Upload CSV'},
+                                    {'label': 'Upload Raw Images', 'value': 'Upload Images'}
+                                ],
+                                value='preloaded')
+                        ]),
+                        html.Div(id='uploaded-data', children=[
+                            dcc.Upload(
+                                id="upload-csv",
+                                className='control-upload',
+                                children=html.Div(
+                                    [
+                                        "Drag and Drop or "
+                                        "click to import "
+                                        ".CSV file here!"
+                                    ]
+                                ),
+                                multiple=True),
+                            dcc.Upload(
+                                id="upload-images",
+                                className='control-upload',
+                                children=html.Div(
+                                    [
+                                        "Drag and Drop or "
+                                        "click to import "
+                                        ".PNG files here!"
+                                    ]
+                                ),
+                                multiple=True),
+                        ])
+                    ])),
+            dcc.Tab(label='Graph', value='graph-tab',
+                    children=[html.Div(className='control-tab', children=[
+                        html.Div(className='app-controls-block', children=[
+                            html.Div(className='app-controls-name', children='Label Selected Cluster'),
+                            html.Div(dcc.Input(id='label-input', type='text')),
+                            html.Button('Submit', id='label-submit'),
+                        ])]),
+                              html.Div(className='control-tab', children=[
+                                  html.Div(className='app-controls-block', children=[
+                                      html.Div(className='app-controls-name', children='Export CSV with new labels'),
+                                      html.A(
+                                          html.Button(
+                                              id='download-button',
+                                              className='control-download',
+                                              children="Download Data"
+                                          ),
+                                          href="",
+                                          download="labeled_data.csv",
+                                      )
+                                  ])])
+                              ],
+                    ),
         ]),
+    ]),
 
     dcc.Graph(
         className='graph-panel',
@@ -90,14 +147,35 @@ app.layout = html.Div(className="grid-container", children=[
              id='im-graph')
 ])
 
+# TODO: implement after selecting/labeling is working
+# @app.callback(
+#     dash.dependencies.Output('download-button', 'href'),
+#     [dash.dependencies.Input('field-dropdown', 'value')])
+# def update_download_link(filter_value):
+#     dff = filter_data(filter_value)
+#     csv_string = dff.to_csv(index=False, encoding='utf-8')
+#     csv_string = "data:text/csv;charset=utf-8," + urllib.quote(csv_string)
+#     return csv_string
 
-def numpy_to_b64(array):
-    array = np.uint8(array)
-    im_pil = Image.fromarray(array)
-    buff = BytesIO()
-    im_pil.save(buff, format="png")
-    im_b64 = base64.b64encode(buff.getvalue()).decode("utf-8")
-    return im_b64
+
+@app.callback(
+    Output('upload-csv', 'style'),
+    [Input('data-dropdown', 'value')])
+def show_hide_uploaded(selected_drop):
+    if selected_drop == 'Upload CSV':
+        return {'display': 'inline-block'}
+    else:
+        return {'display': 'none'}
+
+
+@app.callback(
+    Output('upload-images', 'style'),
+    [Input('data-dropdown', 'value')])
+def show_hide_uploaded(selected_drop):
+    if selected_drop == 'Upload Images':
+        return {'display': 'inline-block'}
+    else:
+        return {'display': 'none'}
 
 
 @app.callback(
@@ -112,7 +190,9 @@ def display_selected_data(selectedData):
             image_b64 = numpy_to_b64(image_np)
             img_src = 'data:image;base64,' + image_b64
             item = html.Img(src=img_src,
-                            style={"height": "5vh", "border": "0", "float": "left"})
+                            style={"height": "5vh",
+                                   "border": "0",
+                                   "float": "left"})
             item_list.append(item)
         return item_list
     else:
