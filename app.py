@@ -1,36 +1,27 @@
-from skimage.io import imread_collection
-from sklearn.manifold import TSNE
 import plotly.express as px
 import pandas as pd
-import base64
-import os
 
 from dash.dependencies import Input, Output
 import dash_html_components as html
 import dash_core_components as dcc
-from waitress import serve
-from io import BytesIO
-from PIL import Image
+
 import numpy as np
 import flask
-import json
 import dash
 
-from util import generate_master
 from util import numpy_to_b64
 from util import build_df
 
 server = flask.Flask(__name__)
 app = dash.Dash(__name__, server=server)
 
-# tsne = pd.read_pickle('data\\tsne_pickle.csv')
 tsne = pd.read_csv('data\\blank_sample.csv')
 tsne = build_df(tsne)
 
 # %%
 fig = px.scatter(tsne, x='x', y='y', color=tsne['label'],  # 820 700
-                 render_mode='webgl', height=750, width=700, hover_data=['index'])  # \
-# .for_each_trace(lambda t: t.update(name=t.name.replace("label=", "")))
+                 render_mode='webgl', height=750, width=700, hover_data=['index']) \
+    .for_each_trace(lambda t: t.update(name=t.name.replace("label=", "")))
 fig.update_traces(marker_line=dict(width=1, color='DarkSlateGray'), marker=dict(size=8))
 fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
 
@@ -131,7 +122,8 @@ app.layout = html.Div(className="grid-container", children=[
                                           href="",
                                           download="labeled_data.csv",
                                       )
-                                  ])])
+                                  ]),
+                                  ])
                               ],
                     ),
         ]),
@@ -146,6 +138,7 @@ app.layout = html.Div(className="grid-container", children=[
     html.Div(className='image-panel',
              id='im-graph')
 ])
+
 
 # TODO: implement after selecting/labeling is working
 # @app.callback(
@@ -167,7 +160,7 @@ def show_hide_uploaded(selected_drop):
     else:
         return {'display': 'none'}
 
-
+#TODO rename this function, duplicate name with the one below it
 @app.callback(
     Output('upload-images', 'style'),
     [Input('data-dropdown', 'value')])
@@ -201,4 +194,3 @@ def display_selected_data(selectedData):
 
 if __name__ == '__main__':
     app.run_server(debug=True)
-    # serve(server, host='0.0.0.0', port=8080, threads=10, debug=True)
