@@ -1,7 +1,7 @@
 import plotly.express as px
 import pandas as pd
 
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_html_components as html
 import dash_core_components as dcc
 
@@ -11,19 +11,18 @@ import dash
 
 from util import numpy_to_b64
 from util import build_df
+from util import generate_fig
+import json
 
 server = flask.Flask(__name__)
 app = dash.Dash(__name__, server=server)
 
 tsne = pd.read_csv('data\\blank_sample.csv')
 tsne = build_df(tsne)
+json_list = json.dumps(tsne['label'].values.tolist())
 
 # %%
-fig = px.scatter(tsne, x='x', y='y', color=tsne['label'],  # 820 700
-                 render_mode='webgl', height=750, width=700, hover_data=['index']) \
-    .for_each_trace(lambda t: t.update(name=t.name.replace("label=", "")))
-fig.update_traces(marker_line=dict(width=1, color='DarkSlateGray'), marker=dict(size=8))
-fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+fig = generate_fig(tsne)
 
 # %%
 app.layout = html.Div(className="grid-container", children=[
@@ -123,7 +122,7 @@ app.layout = html.Div(className="grid-container", children=[
                                           download="labeled_data.csv",
                                       )
                                   ]),
-                                  ])
+                              ])
                               ],
                     ),
         ]),
@@ -136,7 +135,8 @@ app.layout = html.Div(className="grid-container", children=[
     ),
 
     html.Div(className='image-panel',
-             id='im-graph')
+             id='im-graph'),
+    html.Div(id='intermediate-value', style={'display': 'none'}, children=json_list)
 ])
 
 
@@ -150,21 +150,44 @@ app.layout = html.Div(className="grid-container", children=[
 #     csv_string = "data:text/csv;charset=utf-8," + urllib.quote(csv_string)
 #     return csv_string
 
+@app.callback(Output('2d-tsne', 'figure'),
+              [Input('intermediate-value', 'children')])
+def display_graph(label_json):
+    temp_df = tsne.copy(deep=True)
+    label_list = json.loads(label_json)
+    temp_df['label'] = label_list
+    return generate_fig(temp_df)
+
+@app.callback(Output('intermediate-value', 'children'),
+              [Input('label-submit', 'n_clicks')],
+              [State('2d-tsne', 'selectedData'),
+               State('intermediate-value', 'children'),
+               State('label-input', 'value')])
+def label_cluster(n_clicks, selectedData, label_json, label):
+    label_list = json.loads(label_json)
+    label = str(label)
+    if selectedData and n_clicks:
+        for i in selectedData['points']:
+            select_idx = int(i['customdata'][0])
+            label_list[select_idx] = label
+        return json.dumps(label_list)
+    else:
+        return label_json
 
 @app.callback(
     Output('upload-csv', 'style'),
     [Input('data-dropdown', 'value')])
-def show_hide_uploaded(selected_drop):
+def show_hide_csv_upload(selected_drop):
     if selected_drop == 'Upload CSV':
         return {'display': 'inline-block'}
     else:
         return {'display': 'none'}
 
-#TODO rename this function, duplicate name with the one below it
+
 @app.callback(
     Output('upload-images', 'style'),
     [Input('data-dropdown', 'value')])
-def show_hide_uploaded(selected_drop):
+def show_hide_image_upload(selected_drop):
     if selected_drop == 'Upload Images':
         return {'display': 'inline-block'}
     else:
