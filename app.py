@@ -1,27 +1,25 @@
-import pandas as pd
+from util import numpy_to_b64, build_df, generate_fig, parse_contents
 from dash.dependencies import Input, Output, State
+
 import dash_html_components as html
 import dash_core_components as dcc
-
-import numpy as np
 import flask
 import dash
 
-from util import numpy_to_b64
-from util import build_df
-from util import generate_fig
-import json
 import urllib.parse
+import pandas as pd
+import numpy as np
+import json
 
 server = flask.Flask(__name__)
 app = dash.Dash(__name__, server=server)
 
-tsne = pd.read_csv('data\\blank_sample.csv')
-tsne = build_df(tsne)
-json_list = json.dumps(tsne['label'].values.tolist())
+# tsne = pd.read_csv('data\\input.csv')
+# tsne = build_df(tsne)
+# json_list = json.dumps(tsne['label'].values.tolist())
 
 # %%
-fig = generate_fig(tsne)
+fig = {}#None  # generate_fig(tsne)
 
 # %%
 app.layout = html.Div(className="grid-container", children=[
@@ -135,35 +133,56 @@ app.layout = html.Div(className="grid-container", children=[
 
     html.Div(className='image-panel',
              id='im-graph'),
-    html.Div(id='intermediate-value', style={'display': 'none'}, children=json_list)
+    html.Div(id='initial-df', style={'display': 'none'}),
+    html.Div(id='initial-labels', style={'display': 'none'}),
+    html.Div(id='df-value', style={'display': 'none'}),
+    html.Div(id='intermediate-value', style={'display': 'none'})  # , children=json_list)
 ])
 
 
-# dict_img = {'index': index_list,
-#             'label': label_list,
-#             'x': x_values,
-#             'y': y_values,
-#             'paths': path_list,
-#             'image': image_list}
+#
+# @app.callback(Output('df-value', 'children'),
+#               [Input('df-value', 'children')])
+# def clean_df(uploaded_df):
+#     df = build_df(pd.read_json(uploaded_df))
+#     return df.to_json()
 
 
-@app.callback(Output('2d-tsne', 'figure'),
-              [Input('intermediate-value', 'children')])
-def display_graph(label_json):
-    temp_df = tsne.copy(deep=True)
-    label_list = json.loads(label_json)
-    temp_df['label'] = label_list
-    return generate_fig(temp_df)
+@app.callback([Output('initial-df', 'children'),
+               Output('initial-labels', 'children')],
+              [Input('upload-csv', 'contents'),
+               Input('upload-csv', 'filename')])  # last one was state
+def upload_csv(file, filename):
+    if file is not None:
+        df = parse_contents(file, filename)
+        df = build_df(df)
+        json_list = json.dumps(df['label'].astype(str).values.tolist())
+        return df.to_json(), json_list
+    else:
+        return None, None
 
 
 @app.callback([Output('intermediate-value', 'children'),
                Output('download-link', 'href')],
-              [Input('label-submit', 'n_clicks')],
+              [Input('initial-df', 'children'),
+               Input('initial-labels', 'children'),
+               Input('label-submit', 'n_clicks')],
               [State('2d-tsne', 'selectedData'),
                State('intermediate-value', 'children'),
-               State('label-input', 'value')])
-def label_cluster_and_update_download(n_clicks, selectedData, label_json, label):
-    if selectedData and n_clicks:
+               State('label-input', 'value'),
+               State('df-value', 'children')])
+def label_cluster_and_update_download(initial_df, initial_labels, n_clicks, selectedData, label_json, label, uploaded_df):
+    if selectedData and (n_clicks == 0):
+        temp_df = pd.read_json(initial_df)
+        label_list = json.loads(initial_labels)
+
+        temp_df['label'] = label_list
+        temp_df = temp_df[['paths', 'x', 'y', 'label']]
+        csv_string = temp_df.to_csv(index=False, encoding='utf-8')
+        csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
+        return initial_labels, csv_string
+
+    elif selectedData and n_clicks > 0:
         label_list = json.loads(label_json)
         label = str(label)
 
@@ -171,7 +190,8 @@ def label_cluster_and_update_download(n_clicks, selectedData, label_json, label)
             select_idx = int(i['customdata'][0])
             label_list[select_idx] = label
 
-        temp_df = tsne.copy(deep=True)
+        # temp_df = tsne.copy(deep=True)
+        temp_df = pd.read_json(uploaded_df)
         temp_df['label'] = label_list
         temp_df = temp_df[['paths', 'x', 'y', 'label']]
         csv_string = temp_df.to_csv(index=False, encoding='utf-8')
@@ -179,6 +199,20 @@ def label_cluster_and_update_download(n_clicks, selectedData, label_json, label)
         return json.dumps(label_list), csv_string
     else:
         return label_json, None
+
+
+@app.callback(Output('2d-tsne', 'figure'),
+              [Input('intermediate-value', 'children')],
+              [State('df-value', 'children')])
+def display_graph(label_json, uploaded_df):
+    # temp_df = tsne.copy(deep=True)
+    if label_json and uploaded_df:
+        temp_df = pd.read_json(uploaded_df)
+        label_list = json.loads(label_json)
+        temp_df['label'] = label_list
+        return generate_fig(temp_df)
+    else:
+        return {}
 
 
 @app.callback(
@@ -203,13 +237,16 @@ def show_hide_image_upload(selected_drop):
 
 @app.callback(
     Output('im-graph', 'children'),
-    [Input('2d-tsne', 'selectedData')])
-def display_selected_data(selectedData):
-    if selectedData:
+    [Input('2d-tsne', 'selectedData')],
+    [State('df-value', 'children')])
+def display_selected_data(selectedData, uploaded_df):
+    if selectedData and uploaded_df:
+        df = pd.read_json(uploaded_df)
         item_list = []
         for i in selectedData['points']:
             select_idx = int(i['customdata'][0])
-            image_np = tsne['image'][select_idx].reshape(28, 28).astype(np.float64)
+            # image_np = tsne['image'][select_idx].reshape(28, 28).astype(np.float64)
+            image_np = df['image'][select_idx].reshape(28, 28).astype(np.float64)
             image_b64 = numpy_to_b64(image_np)
             img_src = 'data:image;base64,' + image_b64
             item = html.Img(src=img_src,

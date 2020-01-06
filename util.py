@@ -1,4 +1,5 @@
 from skimage.io import imread_collection
+import dash_html_components as html
 from sklearn.manifold import TSNE
 import plotly.express as px
 from io import BytesIO
@@ -6,7 +7,22 @@ from PIL import Image
 import pandas as pd
 import numpy as np
 import base64
-import os
+import io
+
+
+def parse_contents(file, filename):
+    file = file[0]
+    filename = filename[0]
+    _, content_string = file.split(',')
+    decoded = base64.b64decode(content_string)
+    if 'csv' in filename:
+        # Assume that the user uploaded a CSV file
+        df = pd.read_csv(
+            io.StringIO(decoded.decode('utf-8')))
+    elif 'xls' in filename:
+        # Assume that the user uploaded an excel file
+        df = pd.read_excel(io.BytesIO(decoded))
+    return df
 
 
 def generate_fig(tsne):
@@ -98,3 +114,5 @@ def numpy_to_b64(array):
     im_pil.save(buff, format="png")
     im_b64 = base64.b64encode(buff.getvalue()).decode("utf-8")
     return im_b64
+
+
