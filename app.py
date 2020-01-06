@@ -1,6 +1,4 @@
-import plotly.express as px
 import pandas as pd
-
 from dash.dependencies import Input, Output, State
 import dash_html_components as html
 import dash_core_components as dcc
@@ -13,6 +11,7 @@ from util import numpy_to_b64
 from util import build_df
 from util import generate_fig
 import json
+import urllib.parse
 
 server = flask.Flask(__name__)
 app = dash.Dash(__name__, server=server)
@@ -112,14 +111,14 @@ app.layout = html.Div(className="grid-container", children=[
                               html.Div(className='control-tab', children=[
                                   html.Div(className='app-controls-block', children=[
                                       html.Div(className='app-controls-name', children='Export CSV with new labels'),
-                                      html.A(
-                                          html.Button(
-                                              id='download-button',
-                                              className='control-download',
-                                              children="Download Data"
-                                          ),
+                                      html.A(html.Button(
+                                          id='download-button',
+                                          className='control-download',
+                                          children="Download Data"
+                                      ),
+                                          id='download-link',
                                           href="",
-                                          download="labeled_data.csv",
+                                          download="downloaded_data.csv",
                                       )
                                   ]),
                               ])
@@ -140,15 +139,13 @@ app.layout = html.Div(className="grid-container", children=[
 ])
 
 
-# TODO: implement after selecting/labeling is working
-# @app.callback(
-#     dash.dependencies.Output('download-button', 'href'),
-#     [dash.dependencies.Input('field-dropdown', 'value')])
-# def update_download_link(filter_value):
-#     dff = filter_data(filter_value)
-#     csv_string = dff.to_csv(index=False, encoding='utf-8')
-#     csv_string = "data:text/csv;charset=utf-8," + urllib.quote(csv_string)
-#     return csv_string
+# dict_img = {'index': index_list,
+#             'label': label_list,
+#             'x': x_values,
+#             'y': y_values,
+#             'paths': path_list,
+#             'image': image_list}
+
 
 @app.callback(Output('2d-tsne', 'figure'),
               [Input('intermediate-value', 'children')])
@@ -158,21 +155,31 @@ def display_graph(label_json):
     temp_df['label'] = label_list
     return generate_fig(temp_df)
 
-@app.callback(Output('intermediate-value', 'children'),
+
+@app.callback([Output('intermediate-value', 'children'),
+               Output('download-link', 'href')],
               [Input('label-submit', 'n_clicks')],
               [State('2d-tsne', 'selectedData'),
                State('intermediate-value', 'children'),
                State('label-input', 'value')])
-def label_cluster(n_clicks, selectedData, label_json, label):
-    label_list = json.loads(label_json)
-    label = str(label)
+def label_cluster_and_update_download(n_clicks, selectedData, label_json, label):
     if selectedData and n_clicks:
+        label_list = json.loads(label_json)
+        label = str(label)
+
         for i in selectedData['points']:
             select_idx = int(i['customdata'][0])
             label_list[select_idx] = label
-        return json.dumps(label_list)
+
+        temp_df = tsne.copy(deep=True)
+        temp_df['label'] = label_list
+        temp_df = temp_df[['paths', 'x', 'y', 'label']]
+        csv_string = temp_df.to_csv(index=False, encoding='utf-8')
+        csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
+        return json.dumps(label_list), csv_string
     else:
-        return label_json
+        return label_json, None
+
 
 @app.callback(
     Output('upload-csv', 'style'),

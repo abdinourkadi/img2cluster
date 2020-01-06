@@ -8,13 +8,19 @@ import numpy as np
 import base64
 import os
 
+
 def generate_fig(tsne):
+    """
+    generate the interactive graph given
+    a dataframe with x,y,index, and label
+    """
     fig = px.scatter(tsne, x='x', y='y', color=tsne['label'],  # 820 700
                      render_mode='webgl', height=750, width=700, hover_data=['index']) \
         .for_each_trace(lambda t: t.update(name=t.name.replace("label=", "")))
     fig.update_traces(marker_line=dict(width=1, color='DarkSlateGray'), marker=dict(size=8))
     fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
     return fig
+
 
 def generate_master():
     """
