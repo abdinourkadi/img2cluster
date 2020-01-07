@@ -19,7 +19,7 @@ app = dash.Dash(__name__, server=server)
 # json_list = json.dumps(tsne['label'].values.tolist())
 
 # %%
-fig = {}#None  # generate_fig(tsne)
+fig = {}
 
 # %%
 app.layout = html.Div(className="grid-container", children=[
@@ -60,7 +60,6 @@ app.layout = html.Div(className="grid-container", children=[
                            'through this table by selecting the "Chords" graph in the '
                            '"Graph" tab, then viewing the "Chords" dataset in the '
                            '"Table" tab.')])]),
-
             dcc.Tab(label='Data', value='data-tab',
                     children=html.Div(className='control-tab', children=[
                         html.Div(className='app-controls-block', children=[
@@ -163,7 +162,8 @@ def upload_csv(file, filename):
 
 
 @app.callback([Output('intermediate-value', 'children'),
-               Output('download-link', 'href')],
+               Output('download-link', 'href'),
+               Output('df-value', 'children')],
               [Input('initial-df', 'children'),
                Input('initial-labels', 'children'),
                Input('label-submit', 'n_clicks')],
@@ -171,8 +171,9 @@ def upload_csv(file, filename):
                State('intermediate-value', 'children'),
                State('label-input', 'value'),
                State('df-value', 'children')])
-def label_cluster_and_update_download(initial_df, initial_labels, n_clicks, selectedData, label_json, label, uploaded_df):
-    if selectedData and (n_clicks == 0):
+def label_cluster_and_update_download(initial_df, initial_labels, n_clicks, selectedData, label_json, label,
+                                      uploaded_df):
+    if initial_df is not None and n_clicks is None:
         temp_df = pd.read_json(initial_df)
         label_list = json.loads(initial_labels)
 
@@ -180,9 +181,9 @@ def label_cluster_and_update_download(initial_df, initial_labels, n_clicks, sele
         temp_df = temp_df[['paths', 'x', 'y', 'label']]
         csv_string = temp_df.to_csv(index=False, encoding='utf-8')
         csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
-        return initial_labels, csv_string
+        return initial_labels, csv_string, initial_df
 
-    elif selectedData and n_clicks > 0:
+    elif selectedData and (n_clicks > 0):
         label_list = json.loads(label_json)
         label = str(label)
 
@@ -196,9 +197,9 @@ def label_cluster_and_update_download(initial_df, initial_labels, n_clicks, sele
         temp_df = temp_df[['paths', 'x', 'y', 'label']]
         csv_string = temp_df.to_csv(index=False, encoding='utf-8')
         csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
-        return json.dumps(label_list), csv_string
+        return json.dumps(label_list), csv_string, dash.no_update
     else:
-        return label_json, None
+        return label_json, None, None
 
 
 @app.callback(Output('2d-tsne', 'figure'),
@@ -242,6 +243,7 @@ def show_hide_image_upload(selected_drop):
 def display_selected_data(selectedData, uploaded_df):
     if selectedData and uploaded_df:
         df = pd.read_json(uploaded_df)
+        df['image'] = df['image'].apply(lambda x: np.array(x))
         item_list = []
         for i in selectedData['points']:
             select_idx = int(i['customdata'][0])
