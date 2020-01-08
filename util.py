@@ -11,6 +11,10 @@ import io
 
 
 def parse_contents(file, filename):
+    """
+    parsing the contents of uploaded
+    file and returning as dataframe
+    """
     file = file[0]
     filename = filename[0]
     _, content_string = file.split(',')
@@ -30,7 +34,7 @@ def generate_fig(tsne):
     generate the interactive graph given
     a dataframe with x,y,index, and label
     """
-    fig = px.scatter(tsne, x='x', y='y', color=tsne['label'],  # 820 700
+    fig = px.scatter(tsne, x='x', y='y', color=tsne['label'],
                      render_mode='webgl', height=750, width=700, hover_data=['index']) \
         .for_each_trace(lambda t: t.update(name=t.name.replace("label=", "")))
     fig.update_traces(marker_line=dict(width=1, color='DarkSlateGray'), marker=dict(size=8))

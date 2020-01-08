@@ -3,6 +3,7 @@ from dash.dependencies import Input, Output, State
 
 import dash_html_components as html
 import dash_core_components as dcc
+from waitress import serve
 import flask
 import dash
 
@@ -242,3 +243,5 @@ def display_selected_data(selectedData, uploaded_df):
 
 if __name__ == '__main__':
     app.run_server(debug=True)
+    #serve(app.server,port=1001,threads=10)
+
