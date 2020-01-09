@@ -1,5 +1,4 @@
 from skimage.io import imread_collection
-import dash_html_components as html
 from sklearn.manifold import TSNE
 import plotly.express as px
 from io import BytesIO
@@ -7,6 +6,7 @@ from PIL import Image
 import pandas as pd
 import numpy as np
 import base64
+import os
 import io
 
 
@@ -118,5 +118,3 @@ def numpy_to_b64(array):
     im_pil.save(buff, format="png")
     im_b64 = base64.b64encode(buff.getvalue()).decode("utf-8")
     return im_b64
-
-
