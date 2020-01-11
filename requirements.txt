@@ -7,3 +7,4 @@ scikit-image
 plotly
 dash
 pandas
+redis
