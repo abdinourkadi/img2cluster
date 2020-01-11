@@ -12,6 +12,8 @@ import pandas as pd
 import numpy as np
 import json
 
+from flask_caching import Cache
+
 server = flask.Flask(__name__)
 app = dash.Dash(__name__, server=server)
 fig = {}
