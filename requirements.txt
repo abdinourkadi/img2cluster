@@ -8,3 +8,4 @@ plotly
 dash
 pandas
 redis
+Flask-Caching

@@ -53,7 +53,7 @@ def generate_master():
     image_list = []
     label_list = []
 
-    for root, dirs, files in os.walk("data\\images\\", topdown=False):
+    for root, dirs, files in os.walk("data/images/", topdown=False):
         for folder in dirs:
             folder_path = os.path.join(root, folder, '*.jpg')
             print(folder_path)
