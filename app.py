@@ -146,7 +146,6 @@ app.layout = html.Div(className="grid-container", children=[
 
     html.Div(className='image-panel',
              id='im-graph'),
-    # html.Div(id='initial-df', style={'display': 'none'}),
     html.Div(id='initial-labels', style={'display': 'none'}),
     html.Div(id='intermediate-value', style={'display': 'none'}),
     html.Div(my_session_id, id='session-id', style={'display': 'none'})  # json_list)
@@ -158,7 +157,7 @@ def get_dataframe(session_id):
 
     @cache.memoize()
     def query_and_serialize_data(session_id):
-        return global_df  # .to_json()
+        return global_df
 
     print("get dataframe time: ", ((time.time()) - start))
     return query_and_serialize_data(session_id)
@@ -183,16 +182,13 @@ def upload_csv(file, filename):
 
 @app.callback([Output('intermediate-value', 'children'),
                Output('download-link', 'href')],
-              [  # Input('initial-df', 'children'),
-                  Input('initial-labels', 'children'),
-                  Input('label-submit', 'n_clicks')],
+              [Input('initial-labels', 'children'),
+               Input('label-submit', 'n_clicks')],
               [State('2d-tsne', 'selectedData'),
                State('intermediate-value', 'children'),
                State('label-input', 'value')])
 def label_cluster_and_update_download(initial_labels, n_clicks, selectedData, label_json, label):
-    # print('initial labels: ', initial_labels)
     if initial_labels and n_clicks is None:
-        labelstart = time.time()
         temp_df = get_dataframe(my_session_id)
         label_list = json.loads(initial_labels)
 
@@ -200,11 +196,9 @@ def label_cluster_and_update_download(initial_labels, n_clicks, selectedData, la
         temp_df = temp_df[['paths', 'x', 'y', 'label']]
         csv_string = temp_df.to_csv(index=False, encoding='utf-8')
         csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
-        print("initial_labels time: ", ((time.time()) - labelstart))
         return initial_labels, csv_string
 
     elif selectedData and (n_clicks > 0):
-        selectstart = time.time()
         label_list = json.loads(label_json)
         label = str(label)
 
@@ -217,7 +211,6 @@ def label_cluster_and_update_download(initial_labels, n_clicks, selectedData, la
         temp_df = temp_df[['paths', 'x', 'y', 'label']]
         csv_string = temp_df.to_csv(index=False, encoding='utf-8')
         csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
-        print("selectstart time: ", ((time.time()) - selectstart))
         return json.dumps(label_list), csv_string
     else:
         return label_json, None
@@ -226,14 +219,10 @@ def label_cluster_and_update_download(initial_labels, n_clicks, selectedData, la
 @app.callback(Output('2d-tsne', 'figure'),
               [Input('intermediate-value', 'children')])
 def display_graph(label_json):  # , uploaded_df):
-    # print('label json: ', label_json)
     if label_json:
-        display_time = time.time()
-        # temp_df = pd.read_json(uploaded_df)
         temp_df = get_dataframe(my_session_id)
         label_list = json.loads(label_json)
         temp_df['label'] = label_list
-        print("display time: ", ((time.time()) - display_time))
         return generate_fig(temp_df)
     else:
         return {}
@@ -262,30 +251,26 @@ def show_hide_image_upload(selected_drop):
 @app.callback(
     Output('im-graph', 'children'),
     [Input('2d-tsne', 'selectedData')])
-def display_selected_data(selectedData):
-    if selectedData:
+def display_selected_data(selected_data):
+    if selected_data:
 
         df = get_dataframe(my_session_id)
-        time1 = time.time()
-        # df['image'] = df['image'].apply(lambda x: np.array(x))
-        time2 = time.time()
-        print("if statement: ", time2 - time1)
         item_list = []
 
-        for i in selectedData['points']:
+        for i in selected_data['points']:
             select_idx = int(i['customdata'][0])
-            image_np = df['image'][select_idx].reshape(28, 28).astype(np.float64)
+            img_shape = df['shape'][select_idx]
+            if len(img_shape) == 2:
+                image_np = df['image'][select_idx].reshape(img_shape[0], img_shape[1]).astype(np.float64)
+            elif len(img_shape) == 3:
+                image_np = df['image'][select_idx].reshape(img_shape[0], img_shape[1], img_shape[2]).astype(np.float64)
             image_b64 = numpy_to_b64(image_np)
             img_src = 'data:image;base64,' + image_b64
             item = html.Img(src=img_src,
-                            style={"height": "5vh",
-                                   "border": "0",
-                                   "float": "left"})
+                            style={"height": "7vh",
+                                   "padding": "5px"})
             item_list.append(item)
-            # time3 = time.time()
-            # print("for loop total: ", time3 - time2)
-        # time4 = time.time()
-        # print("display selected data total:", time4 - time1)
+
         return item_list
     else:
         return None

@@ -94,14 +94,16 @@ def build_df(df):
 
     df['index'] = df.index.values
     df['label'] = df['label'].fillna('')
-
     image_list = []
+    shape_list = []
     images = imread_collection(df['paths'].tolist())
 
     for i in images:
+        shape_list.append(np.array(i.shape).tolist())
         image_list.append(i.ravel())
 
     df['image'] = image_list
+    df['shape'] = shape_list
     return df
 
 
