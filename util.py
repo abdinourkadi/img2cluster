@@ -1,4 +1,4 @@
-from skimage.io import imread_collection
+from skimage.io import imread_collection, imread
 from sklearn.manifold import TSNE
 import plotly.express as px
 from io import BytesIO
@@ -95,10 +95,9 @@ def build_df(df):
     df['index'] = df.index.values
     df['label'] = df['label'].fillna('')
 
-    path_list = df['paths'].values
     image_list = []
+    images = imread_collection(df['paths'].tolist())
 
-    images = imread_collection(path_list)
     for i in images:
         image_list.append(i.ravel())
 
