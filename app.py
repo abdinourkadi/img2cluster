@@ -1,3 +1,6 @@
+from StringIO import StringIO
+from flask import send_file
+
 from util import numpy_to_b64, build_df, generate_fig, parse_contents
 from dash.dependencies import Input, Output, State
 
@@ -32,7 +35,6 @@ cache.clear()
 fig = {}
 
 my_session_id = '555'  # str(uuid.uuid4())
-print(my_session_id)
 global_df = pd.DataFrame()
 
 # %%
@@ -153,13 +155,10 @@ app.layout = html.Div(className="grid-container", children=[
 
 
 def get_dataframe(session_id):
-    start = time.time()
-
     @cache.memoize()
     def query_and_serialize_data(session_id):
         return global_df
 
-    print("get dataframe time: ", ((time.time()) - start))
     return query_and_serialize_data(session_id)
 
 
@@ -214,6 +213,25 @@ def label_cluster_and_update_download(initial_labels, n_clicks, selectedData, la
         return json.dumps(label_list), csv_string
     else:
         return label_json, None
+
+
+# @app.callback(Output('download-link', 'href'), [Input('my-dropdown', 'value')])
+# def update_link(value):
+#     return '/dash/urlToDownload?value={}'.format(value)
+#
+#
+# @app.server.route('/dash/urlToDownload')
+# def download_csv():
+#     value = flask.request.args.get('value')
+#     # create a dynamic csv or file here using `StringIO`
+#     # (instead of writing to the file system)
+#     strIO = StringIO.StringIO()
+#     strIO.write('You have selected {}'.format(value))
+#     strIO.seek(0)
+#     return send_file(strIO,
+#                      mimetype='text/csv',
+#                      attachment_filename='downloadFile.csv',
+#                      as_attachment=True)
 
 
 @app.callback(Output('2d-tsne', 'figure'),
