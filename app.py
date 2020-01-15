@@ -1,4 +1,4 @@
-from StringIO import StringIO
+#from StringIO import StringIO
 from flask import send_file
 
 from util import numpy_to_b64, build_df, generate_fig, parse_contents
@@ -150,7 +150,7 @@ app.layout = html.Div(className="grid-container", children=[
              id='im-graph'),
     html.Div(id='initial-labels', style={'display': 'none'}),
     html.Div(id='intermediate-value', style={'display': 'none'}),
-    html.Div(my_session_id, id='session-id', style={'display': 'none'})  # json_list)
+    html.Div(my_session_id, id='session-id', style={'display': 'none'})
 ])
 
 
@@ -186,7 +186,7 @@ def upload_csv(file, filename):
               [State('2d-tsne', 'selectedData'),
                State('intermediate-value', 'children'),
                State('label-input', 'value')])
-def label_cluster_and_update_download(initial_labels, n_clicks, selectedData, label_json, label):
+def label_cluster_and_update_download(initial_labels, n_clicks, selected_data, label_json, label):
     if initial_labels and n_clicks is None:
         temp_df = get_dataframe(my_session_id)
         label_list = json.loads(initial_labels)
@@ -197,11 +197,11 @@ def label_cluster_and_update_download(initial_labels, n_clicks, selectedData, la
         csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
         return initial_labels, csv_string
 
-    elif selectedData and (n_clicks > 0):
+    elif selected_data and (n_clicks > 0):
         label_list = json.loads(label_json)
         label = str(label)
 
-        for i in selectedData['points']:
+        for i in selected_data['points']:
             select_idx = int(i['customdata'][0])
             label_list[select_idx] = label
 
