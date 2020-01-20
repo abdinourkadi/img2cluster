@@ -1,6 +1,6 @@
 pillow
 numpy
-scikit-learn==0.22
+scikit-learn==0.22.1
 flask
 waitress
 scikit-image

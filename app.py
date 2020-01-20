@@ -1,4 +1,3 @@
-# from StringIO import StringIO
 from flask import send_file
 
 from util import numpy_to_b64, build_df, generate_fig, parse_contents
@@ -16,6 +15,7 @@ import urllib.parse
 import pandas as pd
 import numpy as np
 import json
+import io
 
 from flask_caching import Cache
 
@@ -208,39 +208,19 @@ def label_cluster_and_update_download(initial_labels, n_clicks, selected_data, l
         temp_df = get_dataframe(my_session_id)
         temp_df['label'] = label_list
         temp_df = temp_df[['paths', 'x', 'y', 'label']]
-        csv_string = temp_df.to_csv(index=False, encoding='utf-8')
-        csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
+        temp_df.to_csv('output/downloadFile.csv', index=False)
+        csv_string = '/dash/urlToDownload'
         return json.dumps(label_list), csv_string
     else:
         return label_json, None
 
 
-# @app.callback(Output('download-link', 'href'),
-#               [Input('download-link', 'href'),
-#                Input('intermediate-value', 'children')])
-# def update_link(value, initial_labels):
-#     label_list = json.loads(initial_labels)
-#
-#     temp_df = get_dataframe(my_session_id)
-#     temp_df['label'] = label_list
-#     temp_df = temp_df[['paths', 'x', 'y', 'label']]
-#     temp_df.to_csv(my_session_id)  # not working yet
-#
-#     return '/dash/urlToDownload?value={}'.format(value)
-#
-#
-# @app.server.route('/dash/urlToDownload')
-# def download_csv():
-#     value = flask.request.args.get('value')
-#     # create a dynamic csv or file here using `StringIO`
-#     # (instead of writing to the file system)
-#     strIO = StringIO.StringIO()
-#     strIO.write('You have selected {}'.format(value))
-#     strIO.seek(0)
-#     return send_file(strIO,
-#                      mimetype='text/csv',
-#                      attachment_filename='downloadFile.csv',
-#                      as_attachment=True)
+@app.server.route('/dash/urlToDownload')
+def download_csv():
+    return send_file('output/downloadFile.csv',
+                     mimetype='csv',
+                     attachment_filename='downloadFile.csv',
+                     as_attachment=True)
 
 
 @app.callback(Output('2d-tsne', 'figure'),
