@@ -6,19 +6,69 @@
     grid-template-areas: "title title title" "sidebar tsnezone images";
 }
 
-.sidebar { grid-area: sidebar;
-           background-color: #00ffce
+.sidebar {
+    grid-area: sidebar;
+    background-color: #00ffce
 }
 
-.graph-panel { grid-area: tsnezone;
-            background-color: #d7eaff
+.graph-panel {
+    grid-area: tsnezone;
+    background-color: #d7eaff
 }
 
-.title { grid-area: title;
-         background-color: #e59293;
-         #height: 20vh}
+.title {
+    grid-area: title;
+    background-color: #e59293;
+    #height: 20vh
+}
 
-.image-panel { grid-area: images;
-               background-color: #9ba1f5;
-                overflow: scroll;
-                max-height: 100vh;}
+.image-panel {
+    grid-area: images;
+    background-color: #9ba1f5;
+    overflow: scroll;
+    max-height: 100vh;
+}
+
+/* Base Styles
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+html {
+  font-size: 62.5%; }
+body {
+  font-size: 1.5em;
+  line-height: 1.6;
+  font-weight: 400;
+  font-family: "Open Sans", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: rgb(50, 50, 50);
+  }
+
+
+/* Typography
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-weight: 300;
+}
+
+h4 {
+    font-size: 2.6rem;
+    line-height: 1.35;
+    letter-spacing: -.08rem;
+    margin-bottom: 1.2rem;
+    margin-top: 1.2rem;
+}
+
+h4.what-is {
+    font-weight: 400;
+    font-size: 20pt;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+p {
+    margin-top: 0;
+}
+
+#control-tab .tab-content {
+    padding: 20px;
+}

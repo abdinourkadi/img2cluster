@@ -45,37 +45,22 @@ app.layout = html.Div(className="grid-container", children=[
         html.Div(children='View and label all of your images in one page'),
     ]),
 
-    html.Div(className='sidebar', children=[
+    html.Div(id="control-tab", className='sidebar', children=[
         dcc.Tabs(id="tabs-example", value='about-tab', children=[
             dcc.Tab(label='About', value='about-tab', children=[
                 html.Div(className='control-tab', children=[
-                    html.H4(className='what-is', children="What is Img2Cluster?"),
+                    html.H4(className='what-is', children='What is Speck?'),
+                    html.P('Speck is a WebGL-based molecule renderer. By '
+                           'using ambient occlusion, the resolution of '
+                           'the rendering does not suffer as you zoom in.'),
+                    html.P('You can toggle between molecules using the menu under the '
+                           '"Data" tab, and control parameters related to '
+                           'the appearance of the molecule in the "View" tab. '
+                           'These parameters can be controlled at a low level '
+                           'with the sliders provided, or preset views can be '
+                           'applied for a higher-level demonstration of changing '
+                           'atom styles and rendering.')])]),
 
-                    html.P('Img2Cluster is a viz of data, and can be used '
-                           'to highlight relationships between objects in a dataset '
-                           '(e.g., genes that are located on different chromosomes '
-                           'in the genome of an organism).'),
-                    html.P('A Dash Img2Cluster graph consists of two main parts: the layout '
-                           'and the tracks. '
-                           'The layout sets the basic parameters of the graph, such as '
-                           'radius, ticks, labels, etc; the tracks are graph layouts '
-                           'that take in a series of data points to display.'),
-                    html.P('The visualizations supported by Dash Circos are: heatmaps, '
-                           'chords, highlights, histograms, line, scatter, stack, '
-                           'and text graphs.'),
-                    html.P('In the "Data" tab, you can opt to use preloaded datasets; '
-                           'additionally, you can download sample data that you would '
-                           'use with a Dash Circos component, upload that sample data, '
-                           'and render it with the "Render" button.'),
-                    html.P('In the "Graph" tab, you can choose the type of Circos graph '
-                           'to display, control the size of the graph, and access data '
-                           'that are generated upon hovering over parts of the graph. '),
-                    html.P('In the "Table" tab, you can view the datasets that define '
-                           'the parameters of the graph, such as the layout, the '
-                           'highlights, and the chords. You can interact with Circos '
-                           'through this table by selecting the "Chords" graph in the '
-                           '"Graph" tab, then viewing the "Chords" dataset in the '
-                           '"Table" tab.')])]),
             dcc.Tab(label='Data', value='data-tab',
                     children=html.Div(className='control-tab', children=[
                         html.Div(className='app-controls-block', children=[
@@ -193,8 +178,8 @@ def label_cluster_and_update_download(initial_labels, n_clicks, selected_data, l
 
         temp_df['label'] = label_list
         temp_df = temp_df[['paths', 'x', 'y', 'label']]
-        csv_string = temp_df.to_csv(index=False, encoding='utf-8')
-        csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
+        temp_df.to_csv('output/downloadFile.csv', index=False)
+        csv_string = '/dash/urlToDownload'
         return initial_labels, csv_string
 
     elif selected_data and (n_clicks > 0):
@@ -267,10 +252,14 @@ def display_selected_data(selected_data):
         for i in selected_data['points']:
             select_idx = int(i['customdata'][0])
             img_shape = df['shape'][select_idx]
+            image_np = df['image'][select_idx]
+
             if len(img_shape) == 2:
-                image_np = df['image'][select_idx].reshape(img_shape[0], img_shape[1]).astype(np.float64)
+                image_np = image_np.reshape(img_shape[0], img_shape[1])
             elif len(img_shape) == 3:
-                image_np = df['image'][select_idx].reshape(img_shape[0], img_shape[1], img_shape[2]).astype(np.float64)
+                image_np = image_np.reshape(img_shape[0], img_shape[1], img_shape[2])
+
+            image_np = image_np.astype(np.float64)
             image_b64 = numpy_to_b64(image_np)
             img_src = 'data:image;base64,' + image_b64
             item = html.Img(src=img_src,
