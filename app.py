@@ -5,6 +5,7 @@ from dash.dependencies import Input, Output, State
 
 import dash_html_components as html
 import dash_core_components as dcc
+import plotly.express as px
 from waitress import serve
 import flask
 import dash
@@ -31,8 +32,8 @@ cache = Cache(app.server, config={
 })
 
 cache.clear()
-
-fig = {}
+fig = px.scatter()#px.scatter()
+fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
 
 my_session_id = '555'  # str(uuid.uuid4())
 global_df = pd.DataFrame()
@@ -217,7 +218,7 @@ def display_graph(label_json):  # , uploaded_df):
         temp_df['label'] = label_list
         return generate_fig(temp_df)
     else:
-        return {}
+        return fig
 
 
 @app.callback(
