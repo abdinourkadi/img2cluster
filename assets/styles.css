@@ -1,24 +1,24 @@
-.grid-container {
+.app-body {
     display: grid;
     grid-template-columns: 0.5fr 1fr 1fr;
-    grid-template-rows: 0.2fr 1fr;
+    grid-template-rows: 0.05fr 1fr;
     height: 98vh;
     grid-template-areas: "title title title" "sidebar tsnezone images";
 }
 
 .sidebar {
     grid-area: sidebar;
-    background-color: #00ffce
+    background-color: #fff9fb;
 }
 
 .graph-panel {
     grid-area: tsnezone;
-    background-color: #d7eaff
+    background-color: #d7eaff;
 }
 
 .title {
     grid-area: title;
-    background-color: #e59293;
+    background-color: #d7ffe8;
     #height: 20vh
 }
 
@@ -33,6 +33,7 @@
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 html {
   font-size: 62.5%; }
+
 body {
   font-size: 1.5em;
   line-height: 1.6;
@@ -71,4 +72,19 @@ p {
 
 #control-tab .tab-content {
     padding: 20px;
+    background-color: #ffffff;
+}
+
+#paragraph {
+    margin-bottom: 0.75rem;
+    margin-top: 0;
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-size: 10pt;
+    font-family: 'Open Sans Light';
+    font-weight: 200;
+    color: #303030;
 }

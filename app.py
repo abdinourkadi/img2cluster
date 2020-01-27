@@ -32,35 +32,36 @@ cache = Cache(app.server, config={
 })
 
 cache.clear()
-fig = px.scatter()#px.scatter()
+fig = px.scatter()
 fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
 
 my_session_id = '555'  # str(uuid.uuid4())
 global_df = pd.DataFrame()
 
 # %%
-app.layout = html.Div(className="grid-container", children=[
-
+app.layout = html.Div(id="cluster-body", className="app-body", children=[
     html.Div(className='title', children=[
-        html.H1(children='Image Dataset Viewer'),
-        html.Div(children='View and label all of your images in one page'),
-    ]),
+        html.H1(children='Image Dataset Viewer')
+    ]
+             ),
 
     html.Div(id="control-tab", className='sidebar', children=[
-        dcc.Tabs(id="tabs-example", value='about-tab', children=[
-            dcc.Tab(label='About', value='about-tab', children=[
+        dcc.Tabs(id="tabs-example", value='what-is', children=[
+            dcc.Tab(label='About', value='what-is', children=[
                 html.Div(className='control-tab', children=[
                     html.H4(className='what-is', children='What is Speck?'),
-                    html.P('Speck is a WebGL-based molecule renderer. By '
-                           'using ambient occlusion, the resolution of '
-                           'the rendering does not suffer as you zoom in.'),
+                    html.P(id="paragraph", children=['Speck is a WebGL-based molecule renderer. By '
+                                                     'using ambient occlusion, the resolution of '
+                                                     'the rendering does not suffer as you zoom in.']),
                     html.P('You can toggle between molecules using the menu under the '
                            '"Data" tab, and control parameters related to '
                            'the appearance of the molecule in the "View" tab. '
                            'These parameters can be controlled at a low level '
                            'with the sliders provided, or preset views can be '
                            'applied for a higher-level demonstration of changing '
-                           'atom styles and rendering.')])]),
+                           'atom styles and rendering.')]
+                         )]
+                    ),
 
             dcc.Tab(label='Data', value='data-tab',
                     children=html.Div(className='control-tab', children=[
@@ -97,43 +98,43 @@ app.layout = html.Div(className="grid-container", children=[
                                         ".PNG files here!"
                                     ]
                                 ),
-                                multiple=True),
+                                multiple=True
+                            ),
                         ])
                     ])),
-            dcc.Tab(label='Graph', value='graph-tab',
-                    children=[html.Div(className='control-tab', children=[
-                        html.Div(className='app-controls-block', children=[
-                            html.Div(className='app-controls-name', children='Label Selected Cluster'),
-                            html.Div(dcc.Input(id='label-input', type='text')),
-                            html.Button('Submit', id='label-submit'),
-                        ])]),
-                              html.Div(className='control-tab', children=[
-                                  html.Div(className='app-controls-block', children=[
-                                      html.Div(className='app-controls-name', children='Export CSV with new labels'),
-                                      html.A(html.Button(
-                                          id='download-button',
-                                          className='control-download',
-                                          children="Download Data"
-                                      ),
-                                          id='download-link',
-                                          href="",
-                                          download="downloaded_data.csv",
-                                      )
-                                  ]),
-                              ])
-                              ],
-                    ),
+
+            dcc.Tab(label='Graph', value='graph-tab', children=[
+                        html.Div(className='control-tab', children=[
+                            html.Div(className='app-controls-block', children=[
+                                html.Div(className='app-controls-name', children='Label Selected Cluster'),
+                                html.Div(dcc.Input(id='label-input', type='text')),
+                                html.Button('Submit', id='label-submit'),
+                            ])
+                        ]),
+                        html.Div(className='control-tab', children=[
+                            html.Div(className='app-controls-block', children=[
+                                html.Div(className='app-controls-name', children='Export CSV with new labels'),
+                                html.A(html.Button(
+                                    id='download-button',
+                                    className='control-download',
+                                    children="Download Data"
+                                ),
+                                    id='download-link',
+                                    href="",
+                                    download="downloaded_data.csv",
+                                )
+                            ]),
+                        ])
+                    ]),
         ]),
     ]),
-
     dcc.Graph(
         className='graph-panel',
         id='2d-tsne',
         figure=fig
     ),
 
-    html.Div(className='image-panel',
-             id='im-graph'),
+    html.Div(id='im-graph', className='image-panel'),
     html.Div(id='initial-labels', style={'display': 'none'}),
     html.Div(id='intermediate-value', style={'display': 'none'}),
     html.Div(my_session_id, id='session-id', style={'display': 'none'})
