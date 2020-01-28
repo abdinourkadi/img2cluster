@@ -18,6 +18,7 @@ def parse_contents(file, filename):
     """
     file = file[0]
     filename = filename[0]
+    print(filename)
     _, content_string = file.split(',')
     decoded = base64.b64decode(content_string)
     if 'csv' in filename:

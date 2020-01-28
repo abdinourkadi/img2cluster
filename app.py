@@ -1,5 +1,6 @@
 from flask import send_file
-
+import zipfile
+import base64
 from util import numpy_to_b64, build_df, generate_fig, parse_contents
 from dash.dependencies import Input, Output, State
 
@@ -39,6 +40,7 @@ starter_fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,
 
 my_session_id = '555'  # str(uuid.uuid4())
 global_df = pd.DataFrame()
+print("hi")
 
 # %%
 app.layout = html.Div(className="grid-container", children=[
@@ -52,16 +54,26 @@ app.layout = html.Div(className="grid-container", children=[
             dcc.Tab(label='About', value='about-tab', children=[
                 html.Div(className='about-text', children=[
                     html.H4(className='what-is', children='What is Img2Cluster?'),
-                    html.P('Speck is a WebGL-based molecule renderer. By '
-                           'using ambient occlusion, the resolution of '
-                           'the rendering does not suffer as you zoom in.'),
-                    html.P('You can toggle between molecules using the menu under the '
-                           '"Data" tab, and control parameters related to '
-                           'the appearance of the molecule in the "View" tab. '
-                           'These parameters can be controlled at a low level '
-                           'with the sliders provided, or preset views can be '
-                           'applied for a higher-level demonstration of changing '
-                           'atom styles and rendering.')])]),
+                    html.P('Img2Cluster is a Dash based image dataset '
+                           'viewer and labeler. Using dimensionality'
+                           'reduction techniques, view and label your data.'
+                           'Img2Cluster is a Dash based image dataset '
+                           'viewer and labeler. Using dimensionality'
+                           'reduction techniques, view and label your data.'
+                           'Img2Cluster is a Dash based image dataset '
+                           'viewer and labeler. Using dimensionality'
+                           'reduction techniques, view and label your data.'
+                           'Img2Cluster is a Dash based image dataset '
+                           'viewer and labeler. Using dimensionality'
+                           'reduction techniques, view and label your data.'
+                           ),
+                    html.P('Img2Cluster is a Dash based image dataset '
+                           'viewer and labeler. Using dimensionality'
+                           'reduction techniques, view and label your data.'
+                           'Img2Cluster is a Dash based image dataset '
+                           'viewer and labeler. Using dimensionality'
+                           'reduction techniques, view and label your data.')
+                ])]),
 
             dcc.Tab(label='Data', value='data-tab',
                     children=html.Div(className='control-tab', children=[
@@ -82,9 +94,8 @@ app.layout = html.Div(className="grid-container", children=[
                                 className='control-upload',
                                 children=html.Div(
                                     [
-                                        "Drag and Drop or "
-                                        "click to import "
-                                        ".CSV file here!"
+                                        "Drag and drop your file here, or click to select"
+                                        " your .csv from your local file directory"
                                     ]
                                 ),
                                 multiple=True),
@@ -102,23 +113,25 @@ app.layout = html.Div(className="grid-container", children=[
                         ])
                     ])),
             dcc.Tab(label='Graph', value='graph-tab',
-                    children=[html.Div(className='control-tab', children=[
-                        html.Div(className='app-controls-block', children=[
-                            html.Div(className='app-controls-name', children='Label Selected Cluster'),
-                            html.Div(dcc.Input(id='label-input', type='text')),
-                            html.Button('Submit', id='label-submit'),
-                        ]),
-                        html.Div(className='app-controls-block', children=[
-                            html.Div(className='app-controls-name', children='Export CSV with new labels'),
-                            html.A(html.Button(
-                                id='download-button',
-                                className='control-download',
-                                children="Download Data"
-                            ),
-                                id='download-link',
-                                href="",
-                                download="downloaded_data.csv",
-                            )])])])
+                    children=[
+                        html.Div(className='control-tab', children=[
+                            html.Div(className='app-controls-block', children=[
+                                html.Div(className='app-controls-name', children='Label Selected Cluster'),
+                                html.Div(dcc.Input(id='label-input', type='text')),
+                                html.Button('Submit', id='label-submit'),
+                            ]),
+                            html.Div(className='app-controls-block', children=[
+                                html.Div(className='app-controls-name', children='Export CSV with new labels'),
+                                html.A(html.Button(
+                                    id='download-button',
+                                    className='control-download',
+                                    children="Download Data"),
+                                    id='download-link',
+                                    href="",
+                                    download="downloaded_data.csv")
+                            ])
+                        ])
+                    ])
         ]),
     ]),
 
@@ -148,15 +161,54 @@ def get_dataframe(session_id):
               [Input('upload-csv', 'contents'),
                Input('upload-csv', 'filename')])
 def upload_csv(file, filename):
+    global global_df
+
     if file is not None:
-        df = parse_contents(file, filename)
-        df = build_df(df)
+        file = file[0]
+        filename = filename[0]
+        print(filename)
 
-        global global_df
-        global_df = df.copy(deep=True)
+        if 'csv' in filename:
+            # Assume that the user uploaded a CSV file
 
-        json_list = json.dumps(df['label'].astype(str).values.tolist())
-        return json_list
+            _, content_string = file.split(',')
+            decoded = base64.b64decode(content_string)
+
+            df = pd.read_csv(
+                io.StringIO(decoded.decode('utf-8')))
+
+            df = parse_contents(file, filename)
+            df = build_df(df)
+
+            global_df = df.copy(deep=True)
+
+            json_list = json.dumps(df['label'].astype(str).values.tolist())
+            return json_list
+
+        elif 'xls' in filename:
+            # Assume that the user uploaded an excel file
+            _, content_string = file.split(',')
+            decoded = base64.b64decode(content_string)
+
+            df = pd.read_excel(io.BytesIO(decoded))
+
+            df = parse_contents(file, filename)
+            df = build_df(df)
+
+            global_df = df.copy(deep=True)
+
+            json_list = json.dumps(df['label'].astype(str).values.tolist())
+            return json_list
+
+        elif 'zip' in filename:
+            zip_file = zipfile.ZipFile("fake_server/zippy.zip", "w")
+            zip_file.write(file)
+            zip_file.close()
+
+            with zipfile.ZipFile('zippy.zip', 'r') as zip_ref:
+                zip_ref.extractall('fake_server/unzipped')
+
+            print("unzipping successful")
     else:
         return None
 

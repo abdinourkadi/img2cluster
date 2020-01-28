@@ -18,6 +18,8 @@
     grid-area: title;
     height: 40%;
     background-color: #5673FA;
+    padding-left: 30px;
+    padding-top: 10px;
 }
 
 .sidebar {
@@ -38,7 +40,7 @@
     filter: drop-shadow(0 0 0.3rem gray);
 }
 
-#app-page-content ::-webkit-scrollbar-thumb {
+#_dash-app-content::-webkit-scrollbar-thumb {
     width: 2px;
     border-radius: 15px;
     padding-right: 5px;
@@ -66,14 +68,30 @@
     text-align: center;
 }
 
-.control-upload {
-    width: 100%;
+.app-controls-block {
     display: block;
-    border: 1px dotted #5673FA;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+#_dash-app-content .control-upload {
+    display: block;
+    border: dotted 1px #119dff; /* Change in individual app stylesheet */
     border-radius: 5px;
     padding: 30px;
-    font-size: 9.5pt;
+    font-size: 9pt;
+    text-align: center;
+    #width: 100%;
 }
+
+/*.control-upload {*/
+/*    width: 100%;*/
+/*    display: block;*/
+/*    border: 1px dotted #5673FA;*/
+/*    border-radius: 5px;*/
+/*    padding: 30px;*/
+/*    font-size: 9.5pt;*/
+/*}*/
 
 /* Base Styles
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
