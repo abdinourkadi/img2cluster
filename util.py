@@ -1,5 +1,6 @@
 from skimage.io import imread_collection, imread
 from sklearn.manifold import TSNE
+import plotly.graph_objects as go
 import plotly.express as px
 from io import BytesIO
 from PIL import Image
@@ -38,6 +39,14 @@ def generate_fig(tsne):
                      render_mode='webgl', hover_data=['index']) \
         .for_each_trace(lambda t: t.update(name=t.name.replace("label=", "")))
     fig.update_traces(marker_line=dict(width=1, color='DarkSlateGray'), marker=dict(size=8))
+    fig.update_layout(
+        margin=go.layout.Margin(
+            l=0,
+            r=0,
+            b=0,
+            t=0,
+            pad=0
+        ))
     fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
     return fig
 

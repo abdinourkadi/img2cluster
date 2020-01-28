@@ -5,7 +5,6 @@ from dash.dependencies import Input, Output, State
 
 import dash_html_components as html
 import dash_core_components as dcc
-import plotly.express as px
 from waitress import serve
 import flask
 import dash
@@ -17,7 +16,7 @@ import pandas as pd
 import numpy as np
 import json
 import io
-
+import plotly.express as px
 from flask_caching import Cache
 
 cache = Cache()
@@ -32,36 +31,37 @@ cache = Cache(app.server, config={
 })
 
 cache.clear()
-fig = px.scatter()
-fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+
+fig = {}
+starter_fig = px.scatter()
+starter_fig.update_traces(marker_line=dict(width=1, color='DarkSlateGray'), marker=dict(size=8))
+starter_fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
 
 my_session_id = '555'  # str(uuid.uuid4())
 global_df = pd.DataFrame()
 
 # %%
-app.layout = html.Div(id="cluster-body", className="app-body", children=[
+app.layout = html.Div(className="grid-container", children=[
+
     html.Div(className='title', children=[
         html.H1(children='Image Dataset Viewer')
-    ]
-             ),
+    ]),
 
-    html.Div(id="control-tab", className='sidebar', children=[
-        dcc.Tabs(id="tabs-example", value='what-is', children=[
-            dcc.Tab(label='About', value='what-is', children=[
-                html.Div(className='control-tab', children=[
-                    html.H4(className='what-is', children='What is Speck?'),
-                    html.P(id="paragraph", children=['Speck is a WebGL-based molecule renderer. By '
-                                                     'using ambient occlusion, the resolution of '
-                                                     'the rendering does not suffer as you zoom in.']),
+    html.Div(id="cluster-control-tab", className='sidebar', children=[
+        dcc.Tabs(id="tabs-example", value='about-tab', children=[
+            dcc.Tab(label='About', value='about-tab', children=[
+                html.Div(className='about-text', children=[
+                    html.H4(className='what-is', children='What is Img2Cluster?'),
+                    html.P('Speck is a WebGL-based molecule renderer. By '
+                           'using ambient occlusion, the resolution of '
+                           'the rendering does not suffer as you zoom in.'),
                     html.P('You can toggle between molecules using the menu under the '
                            '"Data" tab, and control parameters related to '
                            'the appearance of the molecule in the "View" tab. '
                            'These parameters can be controlled at a low level '
                            'with the sliders provided, or preset views can be '
                            'applied for a higher-level demonstration of changing '
-                           'atom styles and rendering.')]
-                         )]
-                    ),
+                           'atom styles and rendering.')])]),
 
             dcc.Tab(label='Data', value='data-tab',
                     children=html.Div(className='control-tab', children=[
@@ -98,43 +98,38 @@ app.layout = html.Div(id="cluster-body", className="app-body", children=[
                                         ".PNG files here!"
                                     ]
                                 ),
-                                multiple=True
-                            ),
+                                multiple=True),
                         ])
                     ])),
-
-            dcc.Tab(label='Graph', value='graph-tab', children=[
-                        html.Div(className='control-tab', children=[
-                            html.Div(className='app-controls-block', children=[
-                                html.Div(className='app-controls-name', children='Label Selected Cluster'),
-                                html.Div(dcc.Input(id='label-input', type='text')),
-                                html.Button('Submit', id='label-submit'),
-                            ])
+            dcc.Tab(label='Graph', value='graph-tab',
+                    children=[html.Div(className='control-tab', children=[
+                        html.Div(className='app-controls-block', children=[
+                            html.Div(className='app-controls-name', children='Label Selected Cluster'),
+                            html.Div(dcc.Input(id='label-input', type='text')),
+                            html.Button('Submit', id='label-submit'),
                         ]),
-                        html.Div(className='control-tab', children=[
-                            html.Div(className='app-controls-block', children=[
-                                html.Div(className='app-controls-name', children='Export CSV with new labels'),
-                                html.A(html.Button(
-                                    id='download-button',
-                                    className='control-download',
-                                    children="Download Data"
-                                ),
-                                    id='download-link',
-                                    href="",
-                                    download="downloaded_data.csv",
-                                )
-                            ]),
-                        ])
-                    ]),
+                        html.Div(className='app-controls-block', children=[
+                            html.Div(className='app-controls-name', children='Export CSV with new labels'),
+                            html.A(html.Button(
+                                id='download-button',
+                                className='control-download',
+                                children="Download Data"
+                            ),
+                                id='download-link',
+                                href="",
+                                download="downloaded_data.csv",
+                            )])])])
         ]),
     ]),
+
     dcc.Graph(
         className='graph-panel',
         id='2d-tsne',
         figure=fig
     ),
 
-    html.Div(id='im-graph', className='image-panel'),
+    html.Div(className='image-panel',
+             id='im-graph'),
     html.Div(id='initial-labels', style={'display': 'none'}),
     html.Div(id='intermediate-value', style={'display': 'none'}),
     html.Div(my_session_id, id='session-id', style={'display': 'none'})
@@ -219,7 +214,7 @@ def display_graph(label_json):  # , uploaded_df):
         temp_df['label'] = label_list
         return generate_fig(temp_df)
     else:
-        return fig
+        return starter_fig
 
 
 @app.callback(
@@ -266,7 +261,9 @@ def display_selected_data(selected_data):
             img_src = 'data:image;base64,' + image_b64
             item = html.Img(src=img_src,
                             style={"height": "7vh",
-                                   "padding": "5px"})
+                                   "padding": "5px",
+                                   "display": "inline-block",
+                                   "text-align-last": "left"})
             item_list.append(item)
 
         return item_list

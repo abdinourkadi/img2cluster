@@ -1,62 +1,140 @@
-.app-body {
+.grid-container {
     display: grid;
-    grid-template-columns: 0.5fr 1fr 1fr;
-    grid-template-rows: 0.05fr 1fr;
-    height: 98vh;
+    grid-template-columns: 0.52fr 0.6fr 0.6fr;
+    grid-template-rows: 0.2fr 1fr;
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
     grid-template-areas: "title title title" "sidebar tsnezone images";
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 200;
+    color: #303030;
+    background-color: #F6F6F6;
+}
+
+.title {
+    color: white;
+    grid-area: title;
+    height: 40%;
+    background-color: #5673FA;
 }
 
 .sidebar {
     grid-area: sidebar;
-    background-color: #fff9fb;
+    width: 80%;
+    height: 84%;
+    background-color: #FFFFFF;
+    justify-self: center;
 }
 
 .graph-panel {
     grid-area: tsnezone;
-    background-color: #d7eaff;
+    height: 87%;
+    width: 100%;
+    justify-self: center;
+    background-color: #ecf2ff;
+    #opacity: 20%;
+    filter: drop-shadow(0 0 0.3rem gray);
 }
 
-.title {
-    grid-area: title;
-    background-color: #d7ffe8;
-    #height: 20vh
+#app-page-content ::-webkit-scrollbar-thumb {
+    width: 2px;
+    border-radius: 15px;
+    padding-right: 5px;
+    background-color: #5673FA;
 }
 
 .image-panel {
+    padding: 10px;
+    height: 87%;
+    width: 80%;
+    align-self: auto;
+    justify-self: center;
     grid-area: images;
-    background-color: #9ba1f5;
+    background-color: #FFFFFF;
     overflow: scroll;
-    max-height: 100vh;
+    filter: drop-shadow(0 0 0.3rem gray);
+    text-align: center;
+}
+
+#data-dropdown {
+    padding-bottom: 20px;
+}
+
+#uploaded-data {
+    text-align: center;
+}
+
+.control-upload {
+    width: 100%;
+    display: block;
+    border: 1px dotted #5673FA;
+    border-radius: 5px;
+    padding: 30px;
+    font-size: 9.5pt;
 }
 
 /* Base Styles
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 html {
-  font-size: 62.5%; }
+  font-size: 62.5%;}
+
 
 body {
-  font-size: 1.5em;
-  line-height: 1.6;
-  font-weight: 400;
-  font-family: "Open Sans", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: rgb(50, 50, 50);
+    margin: 0;
+    padding: 0;
+    font-size: 1.5em;
+    line-height: 1.6;
+    font-weight: 400;
+    #font-family: Arial, Helvetica, sans-serif;
   }
+
+#cluster-control-tab .tab{
+    font-weight: 200;
+    font-size: 11pt;
+    height: 50px;
+    #padding: 20px;
+    background-color: #ffffff;
+    #border: solid 1px #d3d3d3;
+}
+
+#cluster-control-tab .tab--selected {
+    color: #5673FA
+}
+
+#cluster-control-tab .tab-content {
+    padding: 40px;
+    background-color: #FFFFFF;
+}
 
 
 /* Typography
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+
+p {
+    margin-top: 0;
+}
+
 h1, h2, h3, h4, h5, h6 {
     margin-top: 0;
     margin-bottom: 0;
     font-weight: 300;
 }
 
-h4 {
-    font-size: 2.6rem;
-    line-height: 1.35;
-    letter-spacing: -.08rem;
-    margin-bottom: 1.2rem;
-    margin-top: 1.2rem;
+h2 {
+    padding-left: 50px;
+    margin-bottom: 1.8rem;
+    margin-top: 1.8rem;
+    font-size: 22pt;
+    line-height: 1.25;
+    #font-family: Arial, Helvetica, sans-serif;
+    font-weight: 200 !important;
+    letter-spacing: 1px;
+    #position: absolute;
+    top: -5px;
+    display: inline-block;
 }
 
 h4.what-is {
@@ -64,27 +142,4 @@ h4.what-is {
     font-size: 20pt;
     margin-bottom: 30px;
     text-align: center;
-}
-
-p {
-    margin-top: 0;
-}
-
-#control-tab .tab-content {
-    padding: 20px;
-    background-color: #ffffff;
-}
-
-#paragraph {
-    margin-bottom: 0.75rem;
-    margin-top: 0;
-    display: block;
-    margin-block-start: 1em;
-    margin-block-end: 1em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
-    font-size: 10pt;
-    font-family: 'Open Sans Light';
-    font-weight: 200;
-    color: #303030;
 }
