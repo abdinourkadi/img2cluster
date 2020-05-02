@@ -1,4 +1,4 @@
-from skimage.io import imread_collection, imread
+from skimage.io import imread_collection
 from sklearn.manifold import TSNE
 import plotly.graph_objects as go
 import plotly.express as px
@@ -16,11 +16,10 @@ def parse_contents(file, filename):
     parsing the contents of uploaded
     file and returning as dataframe
     """
-    file = file[0]
-    filename = filename[0]
-    print(filename)
+
     _, content_string = file.split(',')
     decoded = base64.b64decode(content_string)
+
     if 'csv' in filename:
         # Assume that the user uploaded a CSV file
         df = pd.read_csv(
@@ -69,6 +68,7 @@ def generate_master():
             print(folder_path)
             images = imread_collection(folder_path)
             path_list.extend(images.files)
+
             for i in images:
                 image_list.append(i.ravel())
                 label_list.append(folder)

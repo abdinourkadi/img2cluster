@@ -40,7 +40,6 @@ starter_fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,
 
 my_session_id = '555'  # str(uuid.uuid4())
 global_df = pd.DataFrame()
-print("hi")
 
 # %%
 app.layout = html.Div(className="grid-container", children=[
@@ -166,17 +165,8 @@ def upload_csv(file, filename):
     if file is not None:
         file = file[0]
         filename = filename[0]
-        print(filename)
 
-        if 'csv' in filename:
-            # Assume that the user uploaded a CSV file
-
-            _, content_string = file.split(',')
-            decoded = base64.b64decode(content_string)
-
-            df = pd.read_csv(
-                io.StringIO(decoded.decode('utf-8')))
-
+        if 'csv' or 'xls' in filename:
             df = parse_contents(file, filename)
             df = build_df(df)
 
@@ -184,31 +174,6 @@ def upload_csv(file, filename):
 
             json_list = json.dumps(df['label'].astype(str).values.tolist())
             return json_list
-
-        elif 'xls' in filename:
-            # Assume that the user uploaded an excel file
-            _, content_string = file.split(',')
-            decoded = base64.b64decode(content_string)
-
-            df = pd.read_excel(io.BytesIO(decoded))
-
-            df = parse_contents(file, filename)
-            df = build_df(df)
-
-            global_df = df.copy(deep=True)
-
-            json_list = json.dumps(df['label'].astype(str).values.tolist())
-            return json_list
-
-        elif 'zip' in filename:
-            zip_file = zipfile.ZipFile("fake_server/zippy.zip", "w")
-            zip_file.write(file)
-            zip_file.close()
-
-            with zipfile.ZipFile('zippy.zip', 'r') as zip_ref:
-                zip_ref.extractall('fake_server/unzipped')
-
-            print("unzipping successful")
     else:
         return None
 
